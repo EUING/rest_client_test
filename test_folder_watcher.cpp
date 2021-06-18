@@ -2,23 +2,9 @@
 
 #include <windows.h>
 
-#include <chrono>
-#include <thread>
 #include <iostream>
-#include <future>
-#include <optional>
 #include <string>
-
-#include "../rest_client/my_client.h"
 #include "../rest_client/folder_watcher.h"
-
-TEST(PingTest, ReturnPong) {
-  bool result = my_rest_client::Ping().has_value();
-  ASSERT_TRUE(result);
-
-  std::wstring message = my_rest_client::Ping().value();
-  EXPECT_EQ(message, L"pong");
-}
 
 TEST(FolderTest, WrongPath) {
 	std::wstring wrong_path = L"WRONG PATH";
@@ -39,6 +25,14 @@ TEST(FolderTest, NoStartAndStop) {
 
 	my_rest_client::FolderWatcher watcher;
 	watcher.StopWatching();
+}
+
+TEST(FolderTest, StartAndNoStop) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+
+	my_rest_client::FolderWatcher watcher;
+	bool result = watcher.StartWatching(path);
+	ASSERT_TRUE(result);
 }
 
 TEST(FolderTest, DuplicateStart) {
@@ -81,6 +75,9 @@ TEST(FolderTest, Stop) {
 	bool result = watcher.StartWatching(path);
 	ASSERT_TRUE(result);
 
+	result = watcher.IsRunning();
+	ASSERT_TRUE(result);
+
 	watcher.StopWatching();
 	result = watcher.IsRunning();
 	ASSERT_FALSE(result);
@@ -99,4 +96,36 @@ TEST(FolderTest, ReRunning) {
 
 	result = watcher.IsRunning();
 	ASSERT_TRUE(result);
+}
+
+TEST(FolderTest, GetFolder) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+
+	my_rest_client::FolderWatcher watcher;
+	bool result = watcher.StartWatching(path);
+	ASSERT_TRUE(result);
+
+	std::wstring current_path = watcher.GetWatchFolder();
+	ASSERT_EQ(path, current_path);
+
+	watcher.StopWatching();
+	current_path = watcher.GetWatchFolder();
+	ASSERT_TRUE(current_path.empty());
+}
+
+TEST(FolderTest, ChangeFolder) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::wstring new_path = L"C:\\";
+
+	my_rest_client::FolderWatcher watcher;
+	bool result = watcher.StartWatching(path);
+	ASSERT_TRUE(result);
+
+	watcher.StopWatching();
+
+	result = watcher.StartWatching(new_path);
+	ASSERT_TRUE(result);
+
+	std::wstring current_path = watcher.GetWatchFolder();
+	ASSERT_EQ(new_path, current_path);
 }
