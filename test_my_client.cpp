@@ -12,8 +12,6 @@
 #include "../rest_client/my_client.h"
 #include "../rest_client/folder_watcher.h"
 
-extern bool my_rest_client::g_watching;
-
 TEST(PingTest, ReturnPong) {
   bool result = my_rest_client::Ping().has_value();
   ASSERT_TRUE(result);
@@ -23,67 +21,82 @@ TEST(PingTest, ReturnPong) {
 }
 
 TEST(FolderTest, WrongPath) {
-	my_rest_client::g_watching = true;
 	std::wstring wrong_path = L"WRONG PATH";
+	my_rest_client::FolderWatcher watcher;
+	bool result = watcher.StartWatching(wrong_path);		
 
-	std::future<std::optional<bool>> fuction_fail = std::async(std::launch::async, my_rest_client::WatchDirectory, std::cref(wrong_path));
-	auto result = fuction_fail.get();
-
-	ASSERT_FALSE(result.has_value());
+	ASSERT_FALSE(result);
 }
 
-TEST(FolderTest, NoChange) {
-	my_rest_client::g_watching = true;
+TEST(FolderTest, NoStartAndNoStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	std::future<std::optional<bool>> no_change = std::async(std::launch::async, my_rest_client::WatchDirectory, std::cref(path));
 
-	my_rest_client::g_watching = false;
-
-	auto result = no_change.get();
-	ASSERT_TRUE(result.has_value());
-	ASSERT_FALSE(result.value());
+	my_rest_client::FolderWatcher watcher;
 }
 
-TEST(FolderTest, NewFolder) {
-	my_rest_client::g_watching = true;
+TEST(FolderTest, NoStartAndStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
 
-	std::future<std::optional<bool>> new_folder = std::async(std::launch::async, my_rest_client::WatchDirectory, std::cref(path));
-
-	using namespace std::chrono_literals;
-	std::this_thread::sleep_for(1s);
-
-	std::wstring new_folder_path = path + L"\\test";
-	_wmkdir(new_folder_path.c_str());
-	
-	my_rest_client::g_watching = false;
-
-	auto result = new_folder.get();
-	RemoveDirectory(new_folder_path.c_str());
-
-	ASSERT_TRUE(result.has_value());
-	ASSERT_TRUE(result.value());	
+	my_rest_client::FolderWatcher watcher;
+	watcher.StopWatching();
 }
 
-TEST(FolderTest, NewFile) {
-	my_rest_client::g_watching = true;
+TEST(FolderTest, DuplicateStart) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
 
-	std::future<std::optional<bool>> new_file = std::async(std::launch::async, my_rest_client::WatchDirectory, std::cref(path));
+	my_rest_client::FolderWatcher watcher;
+	bool result = watcher.StartWatching(path);
+	ASSERT_TRUE(result);
 
-	using namespace std::chrono_literals;
-	std::this_thread::sleep_for(1s);
+	result = watcher.StartWatching(path);
+	ASSERT_FALSE(result);
+}
 
-	std::wstring new_file_path = path + L"\\test.txt";
-	std::ofstream file(new_file_path);
-	file << "test";
-	file.close();
+TEST(FolderTest, DuplicateStop) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
 
-	my_rest_client::g_watching = false;
+	my_rest_client::FolderWatcher watcher;
+	bool result = watcher.StartWatching(path);
+	ASSERT_TRUE(result);
 
-	auto result = new_file.get();
-	DeleteFile(new_file_path.c_str());
+	watcher.StopWatching();
+	watcher.StopWatching();
+}
 
-	ASSERT_TRUE(result.has_value());
-	ASSERT_TRUE(result.value());	
+TEST(FolderTest, Running) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+
+	my_rest_client::FolderWatcher watcher;
+	bool result = watcher.StartWatching(path);
+	ASSERT_TRUE(result);
+
+	result = watcher.IsRunning();
+	ASSERT_TRUE(result);
+}
+
+TEST(FolderTest, Stop) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+
+	my_rest_client::FolderWatcher watcher;
+	bool result = watcher.StartWatching(path);
+	ASSERT_TRUE(result);
+
+	watcher.StopWatching();
+	result = watcher.IsRunning();
+	ASSERT_FALSE(result);
+}
+
+TEST(FolderTest, ReRunning) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+
+	my_rest_client::FolderWatcher watcher;
+	bool result = watcher.StartWatching(path);
+	ASSERT_TRUE(result);
+
+	watcher.StopWatching();
+	result = watcher.StartWatching(path);
+	ASSERT_TRUE(result);
+
+	result = watcher.IsRunning();
+	ASSERT_TRUE(result);
 }
