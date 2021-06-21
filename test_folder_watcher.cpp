@@ -164,7 +164,6 @@ TEST(FolderTest, CreateFolder) {
 
 	my_rest_client::FolderWatcher watcher(&change_info, path);;
 	watcher.StartWatching();
-	Sleep(1000);
 
 	std::string new_folder = "C:\\Users\\ABO\\Desktop\\test";
 	_mkdir(new_folder.c_str());
@@ -192,10 +191,8 @@ TEST(FolderTest, DeleteFolder) {
 
 	my_rest_client::FolderWatcher watcher(&change_info, path);;
 	watcher.StartWatching();
-	Sleep(1000);
 
 	_rmdir(new_folder.c_str());
-	
 
 	std::queue<std::pair<DWORD, std::wstring>> result_info;
 	result_info.push({ FILE_ACTION_REMOVED, L"C:\\Users\\ABO\\Desktop\\test" });
@@ -224,12 +221,12 @@ TEST(FolderTest, ChangeName) {
 
 	std::queue<std::pair<DWORD, std::wstring>> result_info;
 	result_info.push({ FILE_ACTION_RENAMED_NEW_NAME, L"C:\\Users\\ABO\\Desktop\\old;C:\\Users\\ABO\\Desktop\\new" });
-	EXPECT_EQ(result_info.size(), change_info.size());
+	ASSERT_EQ(result_info.size(), change_info.size());
 
 	auto p1 = result_info.front();
 	auto p2 = change_info.front();
 
-	EXPECT_EQ(p1, p2);
+	ASSERT_EQ(p1, p2);
 
 	_rmdir(new_folder.c_str());
 }
@@ -240,7 +237,6 @@ TEST(FolderTest, CreateText) {
 
 	my_rest_client::FolderWatcher watcher(&change_info, path);;
 	watcher.StartWatching();
-	Sleep(1000);
 
 	std::string file_name = "C:\\Users\\ABO\\Desktop\\test.txt";
 	std::ofstream file{ file_name };
@@ -250,12 +246,12 @@ TEST(FolderTest, CreateText) {
 
 	std::queue<std::pair<DWORD, std::wstring>> result_info;
 	result_info.push({ FILE_ACTION_ADDED, L"C:\\Users\\ABO\\Desktop\\test.txt" });
-	EXPECT_EQ(result_info.size(), change_info.size());
+	ASSERT_EQ(result_info.size(), change_info.size());
 
 	auto p1 = result_info.front();
 	auto p2 = change_info.front();
 
-	EXPECT_EQ(p1, p2);
+	ASSERT_EQ(p1, p2);
 	
 	std::remove(file_name.c_str());
 }
