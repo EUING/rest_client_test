@@ -54,3 +54,4 @@ x64/Release/rest_client_test.tlog/link-cvtres.write.1.tlog
 x64/Release/rest_client_test.tlog/link-rc.read.1.tlog
 x64/Release/rest_client_test.tlog/link-rc.write.1.tlog
 x64/Release/test_folder_watcher.obj
+x64/Debug/test_folder_watcher.obj

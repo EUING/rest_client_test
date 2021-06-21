@@ -1,56 +1,68 @@
 #include "pch.h"
 
-#include <windows.h>
+#include <Windows.h>
+#include <direct.h>
 
+#include <fstream>
 #include <iostream>
 #include <string>
+#include <queue>
+#include <utility>
+
 #include "../rest_client/folder_watcher.h"
 
 TEST(FolderTest, WrongPath) {
 	std::wstring wrong_path = L"WRONG PATH";
-	my_rest_client::FolderWatcher watcher;
-	bool result = watcher.StartWatching(wrong_path);		
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
+
+	my_rest_client::FolderWatcher watcher(&change_info, wrong_path);
+	bool result = watcher.StartWatching();		
 
 	ASSERT_FALSE(result);
 }
 
 TEST(FolderTest, NoStartAndNoStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
 
-	my_rest_client::FolderWatcher watcher;
+	my_rest_client::FolderWatcher watcher(&change_info, path);
 }
 
 TEST(FolderTest, NoStartAndStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
 
-	my_rest_client::FolderWatcher watcher;
+	my_rest_client::FolderWatcher watcher(&change_info, path);
 	watcher.StopWatching();
 }
 
 TEST(FolderTest, StartAndNoStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
 
-	my_rest_client::FolderWatcher watcher;
-	bool result = watcher.StartWatching(path);
+	my_rest_client::FolderWatcher watcher(&change_info, path);
+	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 }
 
 TEST(FolderTest, DuplicateStart) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
 
-	my_rest_client::FolderWatcher watcher;
-	bool result = watcher.StartWatching(path);
+	my_rest_client::FolderWatcher watcher(&change_info, path);
+	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
-	result = watcher.StartWatching(path);
+	result = watcher.StartWatching();
 	ASSERT_FALSE(result);
 }
 
 TEST(FolderTest, DuplicateStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
 
-	my_rest_client::FolderWatcher watcher;
-	bool result = watcher.StartWatching(path);
+	my_rest_client::FolderWatcher watcher(&change_info, path);
+	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
 	watcher.StopWatching();
@@ -59,9 +71,10 @@ TEST(FolderTest, DuplicateStop) {
 
 TEST(FolderTest, Running) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
 
-	my_rest_client::FolderWatcher watcher;
-	bool result = watcher.StartWatching(path);
+	my_rest_client::FolderWatcher watcher(&change_info, path);
+	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
 	result = watcher.IsRunning();
@@ -70,9 +83,10 @@ TEST(FolderTest, Running) {
 
 TEST(FolderTest, Stop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
 
-	my_rest_client::FolderWatcher watcher;
-	bool result = watcher.StartWatching(path);
+	my_rest_client::FolderWatcher watcher(&change_info, path);
+	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
 	result = watcher.IsRunning();
@@ -85,13 +99,14 @@ TEST(FolderTest, Stop) {
 
 TEST(FolderTest, ReRunning) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
 
-	my_rest_client::FolderWatcher watcher;
-	bool result = watcher.StartWatching(path);
+	my_rest_client::FolderWatcher watcher(&change_info, path);
+	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
 	watcher.StopWatching();
-	result = watcher.StartWatching(path);
+	result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
 	result = watcher.IsRunning();
@@ -100,32 +115,147 @@ TEST(FolderTest, ReRunning) {
 
 TEST(FolderTest, GetFolder) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
 
-	my_rest_client::FolderWatcher watcher;
-	bool result = watcher.StartWatching(path);
+	my_rest_client::FolderWatcher watcher(&change_info, path);
+	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
 	std::wstring current_path = watcher.GetWatchFolder();
 	ASSERT_EQ(path, current_path);
-
-	watcher.StopWatching();
-	current_path = watcher.GetWatchFolder();
-	ASSERT_TRUE(current_path.empty());
 }
 
 TEST(FolderTest, ChangeFolder) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
 	std::wstring new_path = L"C:\\";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
 
-	my_rest_client::FolderWatcher watcher;
-	bool result = watcher.StartWatching(path);
+	my_rest_client::FolderWatcher watcher(&change_info, path);
+	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
 	watcher.StopWatching();
 
-	result = watcher.StartWatching(new_path);
+	watcher.SetWatchFolder(new_path);
+	result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
 	std::wstring current_path = watcher.GetWatchFolder();
 	ASSERT_EQ(new_path, current_path);
+}
+
+TEST(FolderTest, Move) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
+
+	my_rest_client::FolderWatcher watcher(&change_info, path);;
+	bool result = watcher.StartWatching();
+	ASSERT_TRUE(result);
+
+	my_rest_client::FolderWatcher wathcer2(std::move(watcher));
+
+	result = wathcer2.StartWatching();
+	ASSERT_TRUE(result);
+}
+
+TEST(FolderTest, CreateFolder) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
+
+	my_rest_client::FolderWatcher watcher(&change_info, path);;
+	watcher.StartWatching();
+	Sleep(1000);
+
+	std::string new_folder = "C:\\Users\\ABO\\Desktop\\test";
+	_mkdir(new_folder.c_str());
+
+	watcher.StopWatching();
+	_rmdir(new_folder.c_str());
+
+	std::queue<std::pair<DWORD, std::wstring>> result_info;
+	result_info.push({ FILE_ACTION_ADDED, L"C:\\Users\\ABO\\Desktop\\test" });
+
+	ASSERT_EQ(result_info.size(), change_info.size());
+
+	auto p1 = result_info.front();
+	auto p2 = change_info.front();
+
+	ASSERT_EQ(p1, p2);
+}
+
+TEST(FolderTest, DeleteFolder) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
+
+	std::string new_folder = "C:\\Users\\ABO\\Desktop\\test";
+	_mkdir(new_folder.c_str());
+
+	my_rest_client::FolderWatcher watcher(&change_info, path);;
+	watcher.StartWatching();
+	Sleep(1000);
+
+	_rmdir(new_folder.c_str());
+	
+
+	std::queue<std::pair<DWORD, std::wstring>> result_info;
+	result_info.push({ FILE_ACTION_REMOVED, L"C:\\Users\\ABO\\Desktop\\test" });
+	ASSERT_EQ(result_info.size(), change_info.size());
+
+	auto p1 = result_info.front();
+	auto p2 = change_info.front();
+
+	ASSERT_EQ(p1, p2);
+}
+
+TEST(FolderTest, ChangeName) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
+
+	std::string old_folder = "C:\\Users\\ABO\\Desktop\\old";
+	_mkdir(old_folder.c_str());
+
+	my_rest_client::FolderWatcher watcher(&change_info, path);;
+	watcher.StartWatching();
+
+	std::string new_folder = "C:\\Users\\ABO\\Desktop\\new";
+	std::rename(old_folder.c_str(), new_folder.c_str());
+
+	watcher.StopWatching();
+
+	std::queue<std::pair<DWORD, std::wstring>> result_info;
+	result_info.push({ FILE_ACTION_RENAMED_NEW_NAME, L"C:\\Users\\ABO\\Desktop\\old;C:\\Users\\ABO\\Desktop\\new" });
+	EXPECT_EQ(result_info.size(), change_info.size());
+
+	auto p1 = result_info.front();
+	auto p2 = change_info.front();
+
+	EXPECT_EQ(p1, p2);
+
+	_rmdir(new_folder.c_str());
+}
+
+TEST(FolderTest, CreateText) {
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	std::queue<std::pair<DWORD, std::wstring>> change_info;
+
+	my_rest_client::FolderWatcher watcher(&change_info, path);;
+	watcher.StartWatching();
+	Sleep(1000);
+
+	std::string file_name = "C:\\Users\\ABO\\Desktop\\test.txt";
+	std::ofstream file{ file_name };
+	file.close();	
+	
+	watcher.StopWatching();
+
+	std::queue<std::pair<DWORD, std::wstring>> result_info;
+	result_info.push({ FILE_ACTION_ADDED, L"C:\\Users\\ABO\\Desktop\\test.txt" });
+	EXPECT_EQ(result_info.size(), change_info.size());
+
+	auto p1 = result_info.front();
+	auto p2 = change_info.front();
+
+	EXPECT_EQ(p1, p2);
+	
+	std::remove(file_name.c_str());
 }
