@@ -20,6 +20,21 @@ TEST(FolderTest, WrongPath) {
 	ASSERT_FALSE(result);
 }
 
+TEST(FolderTest, NullCheck) {
+	std::wstring wrong_path = L"WRONG PATH";
+	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::FolderWatcher watcher(nullptr, wrong_path);
+
+	bool result = watcher.StartWatching();
+
+	ASSERT_FALSE(result);
+	watcher.SetWatchFolder(path);
+	result = watcher.StartWatching();
+
+	ASSERT_TRUE(result);
+}
+
 TEST(FolderTest, NoStartAndNoStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
 	my_rest_client::ChangeInfoQueue change_info;
@@ -66,18 +81,6 @@ TEST(FolderTest, DuplicateStop) {
 
 	watcher.StopWatching();
 	watcher.StopWatching();
-}
-
-TEST(FolderTest, Running) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
-
-	my_rest_client::FolderWatcher watcher(&change_info, path);
-	bool result = watcher.StartWatching();
-	ASSERT_TRUE(result);
-
-	result = watcher.IsRunning();
-	ASSERT_TRUE(result);
 }
 
 TEST(FolderTest, Stop) {
