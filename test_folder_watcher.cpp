@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 
+#include "../rest_client/common_utility.h"
 #include "../rest_client/folder_watcher.h"
 #include "../rest_client/change_info_queue.h"
 
@@ -162,9 +163,9 @@ TEST(FolderTest, CreateFolder) {
 	auto result = change_info.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	my_rest_client::ChangeInfo result_info = result.value();
+	my_rest_client::common_utility::ChangeInfo result_info = result.value();
 
-	my_rest_client::ChangeInfo info;
+	my_rest_client::common_utility::ChangeInfo info;
 	info.action = FILE_ACTION_ADDED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test";
 
@@ -187,9 +188,9 @@ TEST(FolderTest, DeleteFolder) {
 	auto result = change_info.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	my_rest_client::ChangeInfo result_info = result.value();
+	my_rest_client::common_utility::ChangeInfo result_info = result.value();
 
-	my_rest_client::ChangeInfo info;
+	my_rest_client::common_utility::ChangeInfo info;
 	info.action = FILE_ACTION_REMOVED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test";
 
@@ -215,9 +216,9 @@ TEST(FolderTest, ChangeName) {
 	auto result = change_info.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	my_rest_client::ChangeInfo result_info = result.value();
+	my_rest_client::common_utility::ChangeInfo result_info = result.value();
 
-	my_rest_client::ChangeInfo info;
+	my_rest_client::common_utility::ChangeInfo info;
 	info.action = FILE_ACTION_RENAMED_NEW_NAME;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\old;C:\\Users\\ABO\\Desktop\\new";
 
@@ -243,9 +244,9 @@ TEST(FolderTest, CreateText) {
 	auto result = change_info.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	my_rest_client::ChangeInfo result_info = result.value();
+	my_rest_client::common_utility::ChangeInfo result_info = result.value();
 
-	my_rest_client::ChangeInfo info;
+	my_rest_client::common_utility::ChangeInfo info;
 	info.action = FILE_ACTION_ADDED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test.txt";
 
@@ -272,9 +273,9 @@ TEST(FolderTest, ModifyText) {
 	auto result = change_info.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	my_rest_client::ChangeInfo result_info = result.value();
+	my_rest_client::common_utility::ChangeInfo result_info = result.value();
 
-	my_rest_client::ChangeInfo info;
+	my_rest_client::common_utility::ChangeInfo info;
 	info.action = FILE_ACTION_MODIFIED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test.txt";
 
