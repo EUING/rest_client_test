@@ -220,7 +220,7 @@ TEST(FolderTest, ChangeName) {
 
 	my_rest_client::common_utility::ChangeObjectInfo info;
 	info.action = FILE_ACTION_RENAMED_NEW_NAME;
-	info.full_path = L"C:\\Users\\ABO\\Desktop\\old:C:\\Users\\ABO\\Desktop\\new";
+	info.full_path = L"C:\\Users\\ABO\\Desktop\\old?C:\\Users\\ABO\\Desktop\\new";
 
 	ASSERT_EQ(result_info.action, info.action);
 	ASSERT_EQ(result_info.full_path, info.full_path);
