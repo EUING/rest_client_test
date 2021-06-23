@@ -1,10 +1,10 @@
 #include "pch.h"
 
 #include "../rest_client/file_manager.h"
-#include "../rest_client/change_info_queue.h"
+#include "../rest_client/notify_queue.h"
 
 TEST(FileTest, NullCheck) {
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 	my_rest_client::FileManager manager(nullptr);
 
 	bool result = manager.Run();
@@ -18,20 +18,20 @@ TEST(FileTest, NullCheck) {
 }
 
 TEST(FileTest, NoRunAndNoStop) {
-	my_rest_client::ChangeInfoQueue change_info;
-	my_rest_client::FileManager manager(&change_info);
+	my_rest_client::NotifyQueue notify_queue;
+	my_rest_client::FileManager manager(&notify_queue);
 }
 
 TEST(FileTest, NoRunAndStop) {
-	my_rest_client::ChangeInfoQueue change_info;
-	my_rest_client::FileManager manager(&change_info);
+	my_rest_client::NotifyQueue notify_queue;
+	my_rest_client::FileManager manager(&notify_queue);
 
 	manager.Stop();
 }
 
 TEST(FileTest, RunAndNoStop) {
-	my_rest_client::ChangeInfoQueue change_info;
-	my_rest_client::FileManager manager(&change_info);
+	my_rest_client::NotifyQueue notify_queue;
+	my_rest_client::FileManager manager(&notify_queue);
 
 	bool result = manager.Run();
 
@@ -39,8 +39,8 @@ TEST(FileTest, RunAndNoStop) {
 }
 
 TEST(FileTest, DuplicateRun) {
-	my_rest_client::ChangeInfoQueue change_info;
-	my_rest_client::FileManager manager(&change_info);
+	my_rest_client::NotifyQueue notify_queue;
+	my_rest_client::FileManager manager(&notify_queue);
 
 	bool result = manager.Run();
 
@@ -51,8 +51,8 @@ TEST(FileTest, DuplicateRun) {
 }
 
 TEST(FileTest, DuplicateStop) {
-	my_rest_client::ChangeInfoQueue change_info;
-	my_rest_client::FileManager manager(&change_info);
+	my_rest_client::NotifyQueue notify_queue;
+	my_rest_client::FileManager manager(&notify_queue);
 
 	bool result = manager.Run();
 
@@ -63,8 +63,8 @@ TEST(FileTest, DuplicateStop) {
 }
 
 TEST(FileTest, Stop) {
-	my_rest_client::ChangeInfoQueue change_info;
-	my_rest_client::FileManager manager(&change_info);
+	my_rest_client::NotifyQueue notify_queue;
+	my_rest_client::FileManager manager(&notify_queue);
 
 	bool result = manager.Run();
 
@@ -79,8 +79,8 @@ TEST(FileTest, Stop) {
 }
 
 TEST(FileTest, ReRunning) {
-	my_rest_client::ChangeInfoQueue change_info;
-	my_rest_client::FileManager manager(&change_info);
+	my_rest_client::NotifyQueue notify_queue;
+	my_rest_client::FileManager manager(&notify_queue);
 
 	bool result = manager.Run();
 

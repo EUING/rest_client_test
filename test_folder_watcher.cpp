@@ -9,13 +9,13 @@
 
 #include "../rest_client/common_utility.h"
 #include "../rest_client/folder_watcher.h"
-#include "../rest_client/change_info_queue.h"
+#include "../rest_client/notify_queue.h"
 
 TEST(FolderTest, WrongPath) {
 	std::wstring wrong_path = L"WRONG PATH";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, wrong_path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, wrong_path);
 	bool result = watcher.StartWatching();		
 
 	ASSERT_FALSE(result);
@@ -24,7 +24,7 @@ TEST(FolderTest, WrongPath) {
 TEST(FolderTest, NullCheck) {
 	std::wstring wrong_path = L"WRONG PATH";
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 	my_rest_client::FolderWatcher watcher(nullptr, wrong_path);
 
 	bool result = watcher.StartWatching();
@@ -38,33 +38,33 @@ TEST(FolderTest, NullCheck) {
 
 TEST(FolderTest, NoStartAndNoStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 }
 
 TEST(FolderTest, NoStartAndStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	watcher.StopWatching();
 }
 
 TEST(FolderTest, StartAndNoStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 }
 
 TEST(FolderTest, DuplicateStart) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
@@ -74,9 +74,9 @@ TEST(FolderTest, DuplicateStart) {
 
 TEST(FolderTest, DuplicateStop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
@@ -86,9 +86,9 @@ TEST(FolderTest, DuplicateStop) {
 
 TEST(FolderTest, Stop) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
@@ -102,9 +102,9 @@ TEST(FolderTest, Stop) {
 
 TEST(FolderTest, ReRunning) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
@@ -118,9 +118,9 @@ TEST(FolderTest, ReRunning) {
 
 TEST(FolderTest, GetFolder) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
@@ -131,9 +131,9 @@ TEST(FolderTest, GetFolder) {
 TEST(FolderTest, ChangeFolder) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
 	std::wstring new_path = L"C:\\";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	bool result = watcher.StartWatching();
 	ASSERT_TRUE(result);
 
@@ -149,9 +149,9 @@ TEST(FolderTest, ChangeFolder) {
 
 TEST(FolderTest, CreateFolder) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	watcher.StartWatching();
 
 	std::string new_folder = "C:\\Users\\ABO\\Desktop\\test";
@@ -160,12 +160,12 @@ TEST(FolderTest, CreateFolder) {
 	watcher.StopWatching();
 	_rmdir(new_folder.c_str());
 
-	auto result = change_info.Pop();
+	auto result = notify_queue.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	my_rest_client::common_utility::ChangeInfo result_info = result.value();
+	my_rest_client::common_utility::ChangeObjectInfo result_info = result.value();
 
-	my_rest_client::common_utility::ChangeInfo info;
+	my_rest_client::common_utility::ChangeObjectInfo info;
 	info.action = FILE_ACTION_ADDED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test";
 
@@ -175,22 +175,22 @@ TEST(FolderTest, CreateFolder) {
 
 TEST(FolderTest, DeleteFolder) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
 	std::string new_folder = "C:\\Users\\ABO\\Desktop\\test";
 	_mkdir(new_folder.c_str());
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	watcher.StartWatching();
 
 	_rmdir(new_folder.c_str());
 
-	auto result = change_info.Pop();
+	auto result = notify_queue.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	my_rest_client::common_utility::ChangeInfo result_info = result.value();
+	my_rest_client::common_utility::ChangeObjectInfo result_info = result.value();
 
-	my_rest_client::common_utility::ChangeInfo info;
+	my_rest_client::common_utility::ChangeObjectInfo info;
 	info.action = FILE_ACTION_REMOVED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test";
 
@@ -200,12 +200,12 @@ TEST(FolderTest, DeleteFolder) {
 
 TEST(FolderTest, ChangeName) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
 	std::string old_folder = "C:\\Users\\ABO\\Desktop\\old";
 	_mkdir(old_folder.c_str());
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	watcher.StartWatching();
 
 	std::string new_folder = "C:\\Users\\ABO\\Desktop\\new";
@@ -213,14 +213,14 @@ TEST(FolderTest, ChangeName) {
 
 	watcher.StopWatching();
 
-	auto result = change_info.Pop();
+	auto result = notify_queue.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	my_rest_client::common_utility::ChangeInfo result_info = result.value();
+	my_rest_client::common_utility::ChangeObjectInfo result_info = result.value();
 
-	my_rest_client::common_utility::ChangeInfo info;
+	my_rest_client::common_utility::ChangeObjectInfo info;
 	info.action = FILE_ACTION_RENAMED_NEW_NAME;
-	info.full_path = L"C:\\Users\\ABO\\Desktop\\old;C:\\Users\\ABO\\Desktop\\new";
+	info.full_path = L"C:\\Users\\ABO\\Desktop\\old:C:\\Users\\ABO\\Desktop\\new";
 
 	ASSERT_EQ(result_info.action, info.action);
 	ASSERT_EQ(result_info.full_path, info.full_path);
@@ -230,9 +230,9 @@ TEST(FolderTest, ChangeName) {
 
 TEST(FolderTest, CreateText) {
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	watcher.StartWatching();
 
 	std::string file_name = "C:\\Users\\ABO\\Desktop\\test.txt";
@@ -241,12 +241,12 @@ TEST(FolderTest, CreateText) {
 	
 	watcher.StopWatching();
 
-	auto result = change_info.Pop();
+	auto result = notify_queue.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	my_rest_client::common_utility::ChangeInfo result_info = result.value();
+	my_rest_client::common_utility::ChangeObjectInfo result_info = result.value();
 
-	my_rest_client::common_utility::ChangeInfo info;
+	my_rest_client::common_utility::ChangeObjectInfo info;
 	info.action = FILE_ACTION_ADDED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test.txt";
 
@@ -262,20 +262,20 @@ TEST(FolderTest, ModifyText) {
 	temp.close();
 
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	my_rest_client::ChangeInfoQueue change_info;
+	my_rest_client::NotifyQueue notify_queue;
 
-	my_rest_client::FolderWatcher watcher(&change_info, path);
+	my_rest_client::FolderWatcher watcher(&notify_queue, path);
 	watcher.StartWatching();
 
 	std::ofstream file{ file_name };
 	file.close();
 
-	auto result = change_info.Pop();
+	auto result = notify_queue.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	my_rest_client::common_utility::ChangeInfo result_info = result.value();
+	my_rest_client::common_utility::ChangeObjectInfo result_info = result.value();
 
-	my_rest_client::common_utility::ChangeInfo info;
+	my_rest_client::common_utility::ChangeObjectInfo info;
 	info.action = FILE_ACTION_MODIFIED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test.txt";
 
