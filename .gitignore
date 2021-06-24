@@ -61,3 +61,5 @@ x64/Debug/rest_client_test.vcxproj.FileListAbsolute.txt
 x64/Debug/vcpkg.applocal.log
 *.tlog
 *.obj
+*.recipe
+*.pch

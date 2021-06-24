@@ -10,7 +10,7 @@ TEST(UtilityTest, ConvertTime) {
 	time.dwLowDateTime = 2366466959;
 	time.dwHighDateTime = 30893927;
 
-	std::optional<std::wstring> result = my_rest_client::common_utility::ConvertIsoTime(time);
+	std::optional<std::wstring> result = monitor_client::common_utility::ConvertIsoTime(time);
 	ASSERT_TRUE(result.has_value());
 
 	auto iso_time = result.value();
@@ -20,7 +20,7 @@ TEST(UtilityTest, ConvertTime) {
 TEST(UtilityTest, GetFileName) {
 	std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019.lnk";
 
-	std::optional<std::wstring> result = my_rest_client::common_utility::GetFileName(file_path);
+	std::optional<std::wstring> result = monitor_client::common_utility::GetFileName(file_path);
 	ASSERT_TRUE(result.has_value());
 
 	auto file_name = result.value();
@@ -30,14 +30,14 @@ TEST(UtilityTest, GetFileName) {
 TEST(UtilityTest, WrongFileName) {
 	std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019";
 
-	std::optional<std::wstring> result = my_rest_client::common_utility::GetFileName(file_path);
+	std::optional<std::wstring> result = monitor_client::common_utility::GetFileName(file_path);
 	ASSERT_FALSE(result.has_value());
 }
 
 TEST(UtilityTest, GetFileInfo) {
 	std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019.lnk";
 
-	std::optional<my_rest_client::common_utility::FileInfo> result = my_rest_client::common_utility::GetFileInfo(file_path);
+	std::optional<monitor_client::common_utility::FileInfo> result = monitor_client::common_utility::GetFileInfo(file_path);
 	ASSERT_TRUE(result.has_value());
 
 	auto file_info = result.value();
@@ -50,29 +50,29 @@ TEST(UtilityTest, GetFileInfo) {
 TEST(UtilityTest, Folder) {
 	std::wstring file_name = L"C:\\Users\\ABO\\Desktop\\test";
 
-	std::optional<my_rest_client::common_utility::FileInfo> result = my_rest_client::common_utility::GetFileInfo(file_name);
+	std::optional<monitor_client::common_utility::FileInfo> result = monitor_client::common_utility::GetFileInfo(file_name);
 	ASSERT_FALSE(result.has_value());
 }
 
 TEST(UtilityTest, WrongPath) {
 	std::wstring file_name = L"WrongPath";
 
-	std::optional<my_rest_client::common_utility::FileInfo> result = my_rest_client::common_utility::GetFileInfo(file_name);
+	std::optional<monitor_client::common_utility::FileInfo> result = monitor_client::common_utility::GetFileInfo(file_name);
 	ASSERT_FALSE(result.has_value());
 }
 
 TEST(UtilityTest, SplitName) {
 	std::wstring file_name;
 
-	std::optional<my_rest_client::common_utility::ChangeNameInfo> result = my_rest_client::common_utility::SplitChangeName(file_name);
+	std::optional<monitor_client::common_utility::ChangeNameInfo> result = monitor_client::common_utility::SplitChangeName(file_name);
 	ASSERT_FALSE(result.has_value());
 
 	file_name = L"test1?test2?test3";
-	result = my_rest_client::common_utility::SplitChangeName(file_name);
+	result = monitor_client::common_utility::SplitChangeName(file_name);
 	ASSERT_FALSE(result.has_value());
 
 	file_name = L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019.lnk?C:\\Users\\ABO\\Desktop\\새 텍스트 문서.txt";
-	result = my_rest_client::common_utility::SplitChangeName(file_name);
+	result = monitor_client::common_utility::SplitChangeName(file_name);
 	ASSERT_TRUE(result.has_value());
 
 	auto info = result.value();
