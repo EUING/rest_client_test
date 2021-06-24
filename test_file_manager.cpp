@@ -5,7 +5,7 @@
 
 TEST(FileTest, NullCheck) {
 	monitor_client::NotifyQueue notify_queue;
-	monitor_client::FileManager manager(nullptr);
+	monitor_client::FileManager manager(nullptr, nullptr);
 
 	bool result = manager.Run();
 	
@@ -19,19 +19,19 @@ TEST(FileTest, NullCheck) {
 
 TEST(FileTest, NoRunAndNoStop) {
 	monitor_client::NotifyQueue notify_queue;
-	monitor_client::FileManager manager(&notify_queue);
+	monitor_client::FileManager manager(&notify_queue, nullptr);
 }
 
 TEST(FileTest, NoRunAndStop) {
 	monitor_client::NotifyQueue notify_queue;
-	monitor_client::FileManager manager(&notify_queue);
+	monitor_client::FileManager manager(&notify_queue, nullptr);
 
 	manager.Stop();
 }
 
 TEST(FileTest, RunAndNoStop) {
 	monitor_client::NotifyQueue notify_queue;
-	monitor_client::FileManager manager(&notify_queue);
+	monitor_client::FileManager manager(&notify_queue, nullptr);
 
 	bool result = manager.Run();
 
@@ -40,7 +40,7 @@ TEST(FileTest, RunAndNoStop) {
 
 TEST(FileTest, DuplicateRun) {
 	monitor_client::NotifyQueue notify_queue;
-	monitor_client::FileManager manager(&notify_queue);
+	monitor_client::FileManager manager(&notify_queue, nullptr);
 
 	bool result = manager.Run();
 
@@ -52,7 +52,7 @@ TEST(FileTest, DuplicateRun) {
 
 TEST(FileTest, DuplicateStop) {
 	monitor_client::NotifyQueue notify_queue;
-	monitor_client::FileManager manager(&notify_queue);
+	monitor_client::FileManager manager(&notify_queue, nullptr);
 
 	bool result = manager.Run();
 
@@ -64,7 +64,7 @@ TEST(FileTest, DuplicateStop) {
 
 TEST(FileTest, Stop) {
 	monitor_client::NotifyQueue notify_queue;
-	monitor_client::FileManager manager(&notify_queue);
+	monitor_client::FileManager manager(&notify_queue, nullptr);
 
 	bool result = manager.Run();
 
@@ -80,7 +80,7 @@ TEST(FileTest, Stop) {
 
 TEST(FileTest, ReRunning) {
 	monitor_client::NotifyQueue notify_queue;
-	monitor_client::FileManager manager(&notify_queue);
+	monitor_client::FileManager manager(&notify_queue, nullptr);
 
 	bool result = manager.Run();
 
