@@ -7,9 +7,9 @@
 #include <iostream>
 #include <string>
 
-#include "../rest_client/common_utility.h"
-#include "../rest_client/folder_watcher.h"
-#include "../rest_client/notify_queue.h"
+#include "../monitor_client/common_utility.h"
+#include "../monitor_client/folder_watcher.h"
+#include "../monitor_client/notify_queue.h"
 
 TEST(FolderTest, WrongPath) {
 	std::wstring wrong_path = L"WRONG PATH";

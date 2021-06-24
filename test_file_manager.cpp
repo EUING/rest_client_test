@@ -1,7 +1,7 @@
 #include "pch.h"
 
-#include "../rest_client/file_manager.h"
-#include "../rest_client/notify_queue.h"
+#include "../monitor_client/file_manager.h"
+#include "../monitor_client/notify_queue.h"
 
 TEST(FileTest, NullCheck) {
 	monitor_client::NotifyQueue notify_queue;

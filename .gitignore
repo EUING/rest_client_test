@@ -63,3 +63,8 @@ x64/Debug/vcpkg.applocal.log
 *.obj
 *.recipe
 *.pch
+*.vcxproj
+*.user
+*.log
+*.CopyComplete
+x64/Release/test_monitor_client.vcxproj.FileListAbsolute.txt

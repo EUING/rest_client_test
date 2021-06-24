@@ -3,18 +3,18 @@
 #include <optional>
 #include <string>
 
-#include "../rest_client/common_utility.h"
+#include "../monitor_client/common_utility.h"
 
 TEST(UtilityTest, ConvertTime) {
 	FILETIME time;
 	time.dwLowDateTime = 2366466959;
 	time.dwHighDateTime = 30893927;
 
-	std::optional<std::wstring> result = monitor_client::common_utility::ConvertIsoTime(time);
+	std::optional<std::wstring> result = monitor_client::common_utility::ConvertTimestamp(time);
 	ASSERT_TRUE(result.has_value());
 
 	auto iso_time = result.value();
-	ASSERT_EQ(L"2021-06-22T22:07:27", iso_time);
+	ASSERT_EQ(L"2021-06-22 22:07:27", iso_time);
 }
 
 TEST(UtilityTest, GetFileName) {
@@ -41,10 +41,10 @@ TEST(UtilityTest, GetFileInfo) {
 	ASSERT_TRUE(result.has_value());
 
 	auto file_info = result.value();
-	ASSERT_EQ(file_info.file_name, L"Visual Studio 2019.lnk");
-	ASSERT_EQ(file_info.file_size, L"1787");
-	ASSERT_EQ(file_info.creation_iso_time, L"2021-06-17T09:48:43");
-	ASSERT_EQ(file_info.last_modified_iso_time, L"2021-06-17T22:16:23");
+	ASSERT_EQ(file_info.name, L"Visual Studio 2019.lnk");
+	ASSERT_EQ(file_info.size, 1787);
+	ASSERT_EQ(file_info.creation_iso_time, L"2021-06-17 09:48:43");
+	ASSERT_EQ(file_info.last_modified_iso_time, L"2021-06-17 22:16:23");
 }
 
 TEST(UtilityTest, Folder) {
