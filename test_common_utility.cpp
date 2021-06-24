@@ -43,8 +43,8 @@ TEST(UtilityTest, GetFileInfo) {
 	auto file_info = result.value();
 	ASSERT_EQ(file_info.name, L"Visual Studio 2019.lnk");
 	ASSERT_EQ(file_info.size, 1787);
-	ASSERT_EQ(file_info.creation_iso_time, L"2021-06-17 09:48:43");
-	ASSERT_EQ(file_info.last_modified_iso_time, L"2021-06-17 22:16:23");
+	ASSERT_EQ(file_info.creation_time, L"2021-06-17 09:48:43");
+	ASSERT_EQ(file_info.last_modified_time, L"2021-06-17 22:16:23");
 }
 
 TEST(UtilityTest, Folder) {
