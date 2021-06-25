@@ -163,9 +163,9 @@ TEST(FolderTest, CreateFolder) {
 	auto result = notify_queue.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	monitor_client::common_utility::ChangeObjectInfo result_info = result.value();
+	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
 
-	monitor_client::common_utility::ChangeObjectInfo info;
+	monitor_client::common_utility::ChangeItemInfo info;
 	info.action = FILE_ACTION_ADDED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test";
 
@@ -188,9 +188,9 @@ TEST(FolderTest, DeleteFolder) {
 	auto result = notify_queue.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	monitor_client::common_utility::ChangeObjectInfo result_info = result.value();
+	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
 
-	monitor_client::common_utility::ChangeObjectInfo info;
+	monitor_client::common_utility::ChangeItemInfo info;
 	info.action = FILE_ACTION_REMOVED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test";
 
@@ -216,9 +216,9 @@ TEST(FolderTest, ChangeName) {
 	auto result = notify_queue.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	monitor_client::common_utility::ChangeObjectInfo result_info = result.value();
+	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
 
-	monitor_client::common_utility::ChangeObjectInfo info;
+	monitor_client::common_utility::ChangeItemInfo info;
 	info.action = FILE_ACTION_RENAMED_NEW_NAME;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\old?C:\\Users\\ABO\\Desktop\\new";
 
@@ -244,9 +244,9 @@ TEST(FolderTest, CreateText) {
 	auto result = notify_queue.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	monitor_client::common_utility::ChangeObjectInfo result_info = result.value();
+	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
 
-	monitor_client::common_utility::ChangeObjectInfo info;
+	monitor_client::common_utility::ChangeItemInfo info;
 	info.action = FILE_ACTION_ADDED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test.txt";
 
@@ -273,9 +273,9 @@ TEST(FolderTest, ModifyText) {
 	auto result = notify_queue.Pop();
 	ASSERT_TRUE(result.has_value());
 
-	monitor_client::common_utility::ChangeObjectInfo result_info = result.value();
+	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
 
-	monitor_client::common_utility::ChangeObjectInfo info;
+	monitor_client::common_utility::ChangeItemInfo info;
 	info.action = FILE_ACTION_MODIFIED;
 	info.full_path = L"C:\\Users\\ABO\\Desktop\\test.txt";
 
