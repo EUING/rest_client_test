@@ -167,10 +167,10 @@ TEST(FolderTest, CreateFolder) {
 
 	monitor_client::common_utility::ChangeItemInfo info;
 	info.action = FILE_ACTION_ADDED;
-	info.full_path = L"C:\\Users\\ABO\\Desktop\\test";
+	info.relative_path = L"test";
 
 	ASSERT_EQ(result_info.action, info.action);
-	ASSERT_EQ(result_info.full_path, info.full_path);
+	ASSERT_EQ(result_info.relative_path, info.relative_path);
 }
 
 TEST(FolderTest, DeleteFolder) {
@@ -192,10 +192,10 @@ TEST(FolderTest, DeleteFolder) {
 
 	monitor_client::common_utility::ChangeItemInfo info;
 	info.action = FILE_ACTION_REMOVED;
-	info.full_path = L"C:\\Users\\ABO\\Desktop\\test";
+	info.relative_path = L"test";
 
 	ASSERT_EQ(result_info.action, info.action);
-	ASSERT_EQ(result_info.full_path, info.full_path);
+	ASSERT_EQ(result_info.relative_path, info.relative_path);
 }
 
 TEST(FolderTest, ChangeName) {
@@ -220,10 +220,10 @@ TEST(FolderTest, ChangeName) {
 
 	monitor_client::common_utility::ChangeItemInfo info;
 	info.action = FILE_ACTION_RENAMED_NEW_NAME;
-	info.full_path = L"C:\\Users\\ABO\\Desktop\\old?C:\\Users\\ABO\\Desktop\\new";
+	info.relative_path = L"old?new";
 
 	ASSERT_EQ(result_info.action, info.action);
-	ASSERT_EQ(result_info.full_path, info.full_path);
+	ASSERT_EQ(result_info.relative_path, info.relative_path);
 
 	_rmdir(new_folder.c_str());
 }
@@ -248,10 +248,10 @@ TEST(FolderTest, CreateText) {
 
 	monitor_client::common_utility::ChangeItemInfo info;
 	info.action = FILE_ACTION_ADDED;
-	info.full_path = L"C:\\Users\\ABO\\Desktop\\test.txt";
+	info.relative_path = L"test.txt";
 
 	ASSERT_EQ(result_info.action, info.action);
-	ASSERT_EQ(result_info.full_path, info.full_path);
+	ASSERT_EQ(result_info.relative_path, info.relative_path);
 	
 	std::remove(file_name.c_str());
 }
@@ -277,10 +277,10 @@ TEST(FolderTest, ModifyText) {
 
 	monitor_client::common_utility::ChangeItemInfo info;
 	info.action = FILE_ACTION_MODIFIED;
-	info.full_path = L"C:\\Users\\ABO\\Desktop\\test.txt";
+	info.relative_path = L"test.txt";
 
 	ASSERT_EQ(result_info.action, info.action);
-	ASSERT_EQ(result_info.full_path, info.full_path);
+	ASSERT_EQ(result_info.relative_path, info.relative_path);
 
 	std::remove(file_name.c_str());
 }

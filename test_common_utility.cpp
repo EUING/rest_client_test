@@ -18,16 +18,6 @@ TEST(UtilityTest, ConvertTime) {
 	ASSERT_EQ(L"2021-06-22 22:07:27", iso_time);
 }
 
-TEST(UtilityTest, GetItemName) {
-	std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019.lnk";
-
-	std::optional<std::wstring> result = monitor_client::common_utility::GetItemName(file_path);
-	ASSERT_TRUE(result.has_value());
-
-	auto file_name = result.value();
-	ASSERT_EQ(file_name, L"Visual Studio 2019.lnk");
-}
-
 TEST(UtilityTest, GetFileInfo) {
 	std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019.lnk";
 
@@ -35,7 +25,7 @@ TEST(UtilityTest, GetFileInfo) {
 	ASSERT_EQ(result.index(), 1);
 
 	auto file_info = std::get<monitor_client::common_utility::FileInfo>(result);
-	ASSERT_EQ(file_info.name, L"Visual Studio 2019.lnk");
+	ASSERT_EQ(file_info.name, file_path);
 	ASSERT_EQ(file_info.size, 1787);
 	ASSERT_EQ(file_info.creation_time, L"2021-06-17 09:48:43");
 	ASSERT_EQ(file_info.last_modified_time, L"2021-06-17 22:16:23");
@@ -48,7 +38,7 @@ TEST(UtilityTest, GetFolderInfo) {
 	ASSERT_EQ(result.index(), 2);
 
 	auto file_info = std::get<monitor_client::common_utility::FolderInfo>(result);
-	ASSERT_EQ(file_info.name, L"project");
+	ASSERT_EQ(file_info.name, file_name);
 	ASSERT_EQ(file_info.creation_time, L"2021-06-16 21:45:26");
 }
 
@@ -74,6 +64,6 @@ TEST(UtilityTest, SplitName) {
 	ASSERT_TRUE(result.has_value());
 
 	auto info = result.value();
-	ASSERT_EQ(info.old_name, L"Visual Studio 2019.lnk");
-	ASSERT_EQ(info.new_name, L"새 텍스트 문서.txt");
+	ASSERT_EQ(info.old_name, L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019.lnk");
+	ASSERT_EQ(info.new_name, L"C:\\Users\\ABO\\Desktop\\새 텍스트 문서.txt");
 }
