@@ -77,46 +77,46 @@ TEST(UtilityTest, SplitPath) {
 	std::vector<std::wstring> split_parent_path;
 	std::wstring item_name;
 
-	bool result = monitor_client::common_utility::SplitPath(L"", split_parent_path, item_name);
+	bool result = monitor_client::common_utility::SplitPath(L"", &split_parent_path, item_name);
 	ASSERT_FALSE(result);
 
-	result = monitor_client::common_utility::SplitPath(L"새 폴더", split_parent_path, item_name);
+	result = monitor_client::common_utility::SplitPath(L"새 폴더", &split_parent_path, item_name);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(item_name, L"새 폴더");
 	ASSERT_TRUE(split_parent_path.empty());
 
-	result = monitor_client::common_utility::SplitPath(L"새 폴더/새 폴더", split_parent_path, item_name);
+	result = monitor_client::common_utility::SplitPath(L"새 폴더/새 폴더", &split_parent_path, item_name);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(item_name, L"새 폴더");
 	ASSERT_EQ(split_parent_path[0], L"새 폴더");
 
-	result = monitor_client::common_utility::SplitPath(L"새 폴더/새 폴더.txt", split_parent_path, item_name);
+	result = monitor_client::common_utility::SplitPath(L"새 폴더/새 폴더.txt", &split_parent_path, item_name);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(item_name, L"새 폴더.txt");
 	ASSERT_EQ(split_parent_path[0], L"새 폴더");
 
-	result = monitor_client::common_utility::SplitPath(L"새 폴더/new folder/새 폴더.txt", split_parent_path, item_name);
+	result = monitor_client::common_utility::SplitPath(L"새 폴더/new folder/새 폴더.txt", &split_parent_path, item_name);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(item_name, L"새 폴더.txt");
 	ASSERT_EQ(split_parent_path[0], L"새 폴더");
 	ASSERT_EQ(split_parent_path[1], L"new folder");
 
-	result = monitor_client::common_utility::SplitPath(L"새 폴더", split_parent_path, item_name);
+	result = monitor_client::common_utility::SplitPath(L"새 폴더", &split_parent_path, item_name);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(item_name, L"새 폴더");
 	ASSERT_TRUE(split_parent_path.empty());
 
-	result = monitor_client::common_utility::SplitPath(L"새 폴더\\새 폴더", split_parent_path, item_name);
+	result = monitor_client::common_utility::SplitPath(L"새 폴더\\새 폴더", &split_parent_path, item_name);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(item_name, L"새 폴더");
 	ASSERT_EQ(split_parent_path[0], L"새 폴더");
 
-	result = monitor_client::common_utility::SplitPath(L"새 폴더\\새 폴더.txt", split_parent_path, item_name);
+	result = monitor_client::common_utility::SplitPath(L"새 폴더\\새 폴더.txt", &split_parent_path, item_name);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(item_name, L"새 폴더.txt");
 	ASSERT_EQ(split_parent_path[0], L"새 폴더");
 
-	result = monitor_client::common_utility::SplitPath(L"새 폴더\\new folder\\새 폴더.txt", split_parent_path, item_name);
+	result = monitor_client::common_utility::SplitPath(L"새 폴더\\new folder\\새 폴더.txt", &split_parent_path, item_name);
 	ASSERT_TRUE(result);
 	ASSERT_EQ(item_name, L"새 폴더.txt");
 	ASSERT_EQ(split_parent_path[0], L"새 폴더");
