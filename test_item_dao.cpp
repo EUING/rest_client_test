@@ -3,7 +3,7 @@
 #include <optional>
 
 #include "../monitor_client/common_utility.h"
-#include "../monitor_client/item_dao.h"
+#include "../monitor_client/item_dao_sqlite.h"
 
 #include "../monitor_client/sqlite_wrapper.h"
 
@@ -35,13 +35,13 @@ public:
 };
 
 TEST_F(ItemDao, OpenMemory) {
-	monitor_client::ItemDao item_dao;
+	monitor_client::ItemDaoSqlite item_dao;
 	bool result = item_dao.OpenDatabase(L":memory:");
 	ASSERT_TRUE(result);
 }
 
 TEST_F(ItemDao, GetItemId) {
-	monitor_client::ItemDao item_dao;
+	monitor_client::ItemDaoSqlite item_dao;
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
 	std::optional<int> result = item_dao.GetItemId(L"새 폴더", 0);
@@ -51,7 +51,7 @@ TEST_F(ItemDao, GetItemId) {
 }
 
 TEST_F(ItemDao, GetFileInfo) {
-	monitor_client::ItemDao item_dao;
+	monitor_client::ItemDaoSqlite item_dao;
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
 	std::optional<monitor_client::common_utility::FileInfo> result = item_dao.GetFileInfo(L"새 텍스트 파일.txt", -1);
@@ -73,7 +73,7 @@ TEST_F(ItemDao, GetFileInfo) {
 }
 
 TEST_F(ItemDao, GetFolderContainList) {
-	monitor_client::ItemDao item_dao;
+	monitor_client::ItemDaoSqlite item_dao;
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
 	std::optional<std::vector<monitor_client::common_utility::FileInfo>> result = item_dao.GetFolderContainList(0);
@@ -125,7 +125,7 @@ TEST_F(ItemDao, GetFolderContainList) {
 }
 
 TEST_F(ItemDao, ChangeItemName) {
-	monitor_client::ItemDao item_dao;
+	monitor_client::ItemDaoSqlite item_dao;
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
 	monitor_client::common_utility::ChangeNameInfo info;
@@ -148,7 +148,7 @@ TEST_F(ItemDao, ChangeItemName) {
 }
 
 TEST_F(ItemDao, DeleteItemInfo) {
-	monitor_client::ItemDao item_dao;
+	monitor_client::ItemDaoSqlite item_dao;
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
 	std::optional<int> num = item_dao.DeleteItemInfo(L"test.jpg", 2);
@@ -180,7 +180,7 @@ TEST_F(ItemDao, DeleteItemInfo) {
 }
 
 TEST_F(ItemDao, InsertFileInfo) {
-	monitor_client::ItemDao item_dao;
+	monitor_client::ItemDaoSqlite item_dao;
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
 	monitor_client::common_utility::FileInfo info;
@@ -218,7 +218,7 @@ TEST_F(ItemDao, InsertFileInfo) {
 }
 
 TEST_F(ItemDao, ModifyFileInfo) {
-	monitor_client::ItemDao item_dao;
+	monitor_client::ItemDaoSqlite item_dao;
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
 	monitor_client::common_utility::FileInfo info;
@@ -238,7 +238,7 @@ TEST_F(ItemDao, ModifyFileInfo) {
 }
 
 TEST_F(ItemDao, InsertFolderInfo) {
-	monitor_client::ItemDao item_dao;
+	monitor_client::ItemDaoSqlite item_dao;
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
 	monitor_client::common_utility::FolderInfo folder_info;

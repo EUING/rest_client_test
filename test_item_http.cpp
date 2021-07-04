@@ -7,7 +7,8 @@
 #include "../monitor_client/item_http.h"
 
 TEST(HttpTest, RenamedFile) {
-	monitor_client::ItemHttp item_http(L"ggulmo.iptime.org", 56380);
+	monitor_client::common_utility::NetworkInfo network_info{ L"ggulmo.iptime.org", 56380 };
+	monitor_client::ItemHttp item_http(network_info);
 
 	monitor_client::common_utility::ChangeNameInfo info;
 	info.old_name = L"새 텍스트 문서.txt";
@@ -18,7 +19,8 @@ TEST(HttpTest, RenamedFile) {
 }
 
 TEST(HttpTest, AddFile) {
-	monitor_client::ItemHttp item_http(L"ggulmo.iptime.org", 56380);
+	monitor_client::common_utility::NetworkInfo network_info{ L"ggulmo.iptime.org", 56380 };
+	monitor_client::ItemHttp item_http(network_info);
 
 	monitor_client::common_utility::FileInfo file_info;
 	file_info.name = L"새 텍스트 문서.txt";
@@ -31,7 +33,8 @@ TEST(HttpTest, AddFile) {
 }
 
 TEST(HttpTest, ModifyFile) {
-	monitor_client::ItemHttp item_http(L"ggulmo.iptime.org", 56380);
+	monitor_client::common_utility::NetworkInfo network_info{ L"ggulmo.iptime.org", 56380 };
+	monitor_client::ItemHttp item_http(network_info);
 
 	monitor_client::common_utility::FileInfo file_info;
 	file_info.name = L"새 텍스트 문서.txt";
@@ -44,7 +47,8 @@ TEST(HttpTest, ModifyFile) {
 }
 
 TEST(HttpTest, AddFolder) {
-	monitor_client::ItemHttp item_http(L"ggulmo.iptime.org", 56380);
+	monitor_client::common_utility::NetworkInfo network_info{ L"ggulmo.iptime.org", 56380 };
+	monitor_client::ItemHttp item_http(network_info);
 
 	monitor_client::common_utility::FolderInfo folder_info;
 	folder_info.name = L"new folder";

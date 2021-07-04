@@ -1,94 +1,93 @@
 #include "pch.h"
 
+#include <memory>
+
+#include "../monitor_client/item_dao.h"
 #include "../monitor_client/item_manager.h"
 #include "../monitor_client/notify_queue.h"
 
-TEST(FileTest, NullCheck) {
-	monitor_client::NotifyQueue notify_queue;
-	monitor_client::ItemManager manager(nullptr, nullptr);
+class FileTest : public ::testing::Test {
+public:
+	monitor_client::ItemManager* manager;
 
-	bool result = manager.Run();
+	void SetUp() override {
+		manager = new monitor_client::ItemManager(std::make_shared<monitor_client::NotifyQueue>(),
+			monitor_client::common_utility::NetworkInfo{ L"127.0.0.1", 56380 },
+			std::make_unique<monitor_client::ItemDaoDummy>());
+	}
+
+	void TearDown() override {
+		delete manager;
+	}
+};
+
+TEST_F(FileTest, NoRunAndNoStop) {
+}
+TEST_F(FileTest, NullCheck) {
+	delete manager;
+	manager = new monitor_client::ItemManager(nullptr,
+		monitor_client::common_utility::NetworkInfo{ L"127.0.0.1", 56380 },
+		std::make_unique<monitor_client::ItemDaoDummy>());
+
+	bool result = manager->Run();
 	
 	ASSERT_FALSE(result);
 
-	manager.Stop();
+	manager->Stop();
 
-	result = manager.IsRunning();
+	result = manager->IsRunning();
 	ASSERT_FALSE(result);
 }
 
-TEST(FileTest, NoRunAndNoStop) {
-	monitor_client::NotifyQueue notify_queue;
-	monitor_client::ItemManager manager(&notify_queue, nullptr);
+TEST_F(FileTest, NoRunAndStop) {
+	manager->Stop();
 }
 
-TEST(FileTest, NoRunAndStop) {
-	monitor_client::NotifyQueue notify_queue;
-	monitor_client::ItemManager manager(&notify_queue, nullptr);
-
-	manager.Stop();
-}
-
-TEST(FileTest, RunAndNoStop) {
-	monitor_client::NotifyQueue notify_queue;
-	monitor_client::ItemManager manager(&notify_queue, nullptr);
-
-	bool result = manager.Run();
+TEST_F(FileTest, RunAndNoStop) {
+	bool result = manager->Run();
 
 	ASSERT_TRUE(result);
 }
 
-TEST(FileTest, DuplicateRun) {
-	monitor_client::NotifyQueue notify_queue;
-	monitor_client::ItemManager manager(&notify_queue, nullptr);
-
-	bool result = manager.Run();
+TEST_F(FileTest, DuplicateRun) {
+	bool result = manager->Run();
 
 	ASSERT_TRUE(result);
 
-	result = manager.Run();
+	result = manager->Run();
 	ASSERT_FALSE(result);
 }
 
-TEST(FileTest, DuplicateStop) {
-	monitor_client::NotifyQueue notify_queue;
-	monitor_client::ItemManager manager(&notify_queue, nullptr);
-
-	bool result = manager.Run();
+TEST_F(FileTest, DuplicateStop) {
+	bool result = manager->Run();
 
 	ASSERT_TRUE(result);
 
-	manager.Stop();
-	manager.Stop();
+	manager->Stop();
+	manager->Stop();
 }
 
-TEST(FileTest, Stop) {
-	monitor_client::NotifyQueue notify_queue;
-	monitor_client::ItemManager manager(&notify_queue, nullptr);
-
-	bool result = manager.Run();
+TEST_F(FileTest, Stop) {
+	bool result = manager->Run();
 
 	ASSERT_TRUE(result);
 
-	result = manager.IsRunning();
+	result = manager->IsRunning();
 	ASSERT_TRUE(result);
 
-	manager.Stop();
-	result = manager.IsRunning();
+	manager->Stop();
+	result = manager->IsRunning();
 	ASSERT_FALSE(result);
 }
 
-TEST(FileTest, ReRunning) {
-	monitor_client::NotifyQueue notify_queue;
-	monitor_client::ItemManager manager(&notify_queue, nullptr);
-
-	bool result = manager.Run();
+TEST_F(FileTest, ReRunning) {
+	bool result = manager->Run();
 
 	ASSERT_TRUE(result);
 
-	manager.Stop();
+	manager->Stop();
 
-	result = manager.Run();
+	result = manager->Run();
 
 	ASSERT_TRUE(result);
 }

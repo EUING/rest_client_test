@@ -11,156 +11,130 @@
 #include "../monitor_client/folder_watcher.h"
 #include "../monitor_client/notify_queue.h"
 
-TEST(FolderTest, WrongPath) {
+const wchar_t* const kTestPath = L"C:\\Users\\ABO\\Desktop";
+class FolderTest : public ::testing::Test {
+public:
+	monitor_client::FolderWatcher* watcher;
+	std::shared_ptr<monitor_client::NotifyQueue> notify_queue;
+	void SetUp() override {
+		notify_queue = std::make_shared<monitor_client::NotifyQueue>();
+		watcher = new monitor_client::FolderWatcher(notify_queue, kTestPath);
+	}
+
+	void TearDown() override {
+		delete watcher;
+	}
+};
+
+TEST_F(FolderTest, WrongPath) {
 	std::wstring wrong_path = L"WRONG PATH";
-	monitor_client::NotifyQueue notify_queue;
+	watcher->SetWatchFolder(wrong_path);
 
-	monitor_client::FolderWatcher watcher(&notify_queue, wrong_path);
-	bool result = watcher.StartWatching();		
+	bool result = watcher->StartWatching();		
 
 	ASSERT_FALSE(result);
 }
 
-TEST(FolderTest, NullCheck) {
+TEST_F(FolderTest, NullCheck) {
 	std::wstring wrong_path = L"WRONG PATH";
 	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-	monitor_client::FolderWatcher watcher(nullptr, wrong_path);
+	delete watcher;
+	watcher = new monitor_client::FolderWatcher(nullptr, wrong_path);
 
-	bool result = watcher.StartWatching();
+	bool result = watcher->StartWatching();
 
 	ASSERT_FALSE(result);
-	watcher.SetWatchFolder(path);
-	result = watcher.StartWatching();
+	watcher->SetWatchFolder(path);
+	result = watcher->StartWatching();
 
 	ASSERT_TRUE(result);
 }
 
-TEST(FolderTest, NoStartAndNoStop) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
+TEST_F(FolderTest, NoStartAndNoStop) {
 }
 
-TEST(FolderTest, NoStartAndStop) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	watcher.StopWatching();
+TEST_F(FolderTest, NoStartAndStop) {
+	watcher->StopWatching();
 }
 
-TEST(FolderTest, StartAndNoStop) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	bool result = watcher.StartWatching();
+TEST_F(FolderTest, StartAndNoStop) {
+	bool result = watcher->StartWatching();
 	ASSERT_TRUE(result);
 }
 
-TEST(FolderTest, DuplicateStart) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	bool result = watcher.StartWatching();
+TEST_F(FolderTest, DuplicateStart) {
+	bool result = watcher->StartWatching();
 	ASSERT_TRUE(result);
 
-	result = watcher.StartWatching();
+	result = watcher->StartWatching();
 	ASSERT_FALSE(result);
 }
 
-TEST(FolderTest, DuplicateStop) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	bool result = watcher.StartWatching();
+TEST_F(FolderTest, DuplicateStop) {
+	bool result = watcher->StartWatching();
 	ASSERT_TRUE(result);
 
-	watcher.StopWatching();
-	watcher.StopWatching();
+	watcher->StopWatching();
+	watcher->StopWatching();
 }
 
-TEST(FolderTest, Stop) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	bool result = watcher.StartWatching();
+TEST_F(FolderTest, Stop) {
+	bool result = watcher->StartWatching();
 	ASSERT_TRUE(result);
 
-	result = watcher.IsRunning();
+	result = watcher->IsRunning();
 	ASSERT_TRUE(result);
 
-	watcher.StopWatching();
-	result = watcher.IsRunning();
+	watcher->StopWatching();
+	result = watcher->IsRunning();
 	ASSERT_FALSE(result);
 }
 
-TEST(FolderTest, ReRunning) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	bool result = watcher.StartWatching();
+TEST_F(FolderTest, ReRunning) {
+	bool result = watcher->StartWatching();
 	ASSERT_TRUE(result);
 
-	watcher.StopWatching();
-	result = watcher.StartWatching();
+	watcher->StopWatching();
+	result = watcher->StartWatching();
 	ASSERT_TRUE(result);
 
-	result = watcher.IsRunning();
+	result = watcher->IsRunning();
 	ASSERT_TRUE(result);
 }
 
-TEST(FolderTest, GetFolder) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	bool result = watcher.StartWatching();
+TEST_F(FolderTest, GetFolder) {
+	bool result = watcher->StartWatching();
 	ASSERT_TRUE(result);
 
-	std::wstring current_path = watcher.GetWatchFolder();
-	ASSERT_EQ(path, current_path);
+	std::wstring current_path = watcher->GetWatchFolder();
+	ASSERT_EQ(kTestPath, current_path);
 }
 
-TEST(FolderTest, ChangeFolder) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
+TEST_F(FolderTest, ChangeFolder) {
 	std::wstring new_path = L"C:\\";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	bool result = watcher.StartWatching();
+	bool result = watcher->StartWatching();
 	ASSERT_TRUE(result);
 
-	watcher.StopWatching();
+	watcher->StopWatching();
 
-	watcher.SetWatchFolder(new_path);
-	result = watcher.StartWatching();
+	watcher->SetWatchFolder(new_path);
+	result = watcher->StartWatching();
 	ASSERT_TRUE(result);
 
-	std::wstring current_path = watcher.GetWatchFolder();
+	std::wstring current_path = watcher->GetWatchFolder();
 	ASSERT_EQ(new_path, current_path);
 }
 
-TEST(FolderTest, CreateFolder) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	watcher.StartWatching();
+TEST_F(FolderTest, CreateFolder) {
+	watcher->StartWatching();
 
 	std::string new_folder = "C:\\Users\\ABO\\Desktop\\test";
 	_mkdir(new_folder.c_str());
 
-	watcher.StopWatching();
+	watcher->StopWatching();
 	_rmdir(new_folder.c_str());
 
-	auto result = notify_queue.Pop();
+	auto result = notify_queue->Pop();
 	ASSERT_TRUE(result.has_value());
 
 	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
@@ -173,19 +147,15 @@ TEST(FolderTest, CreateFolder) {
 	ASSERT_EQ(result_info.relative_path, info.relative_path);
 }
 
-TEST(FolderTest, DeleteFolder) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
+TEST_F(FolderTest, DeleteFolder) {
 	std::string new_folder = "C:\\Users\\ABO\\Desktop\\test";
 	_mkdir(new_folder.c_str());
 
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	watcher.StartWatching();
+	watcher->StartWatching();
 
 	_rmdir(new_folder.c_str());
 
-	auto result = notify_queue.Pop();
+	auto result = notify_queue->Pop();
 	ASSERT_TRUE(result.has_value());
 
 	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
@@ -198,22 +168,18 @@ TEST(FolderTest, DeleteFolder) {
 	ASSERT_EQ(result_info.relative_path, info.relative_path);
 }
 
-TEST(FolderTest, ChangeName) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
+TEST_F(FolderTest, ChangeName) {
 	std::string old_folder = "C:\\Users\\ABO\\Desktop\\old";
 	_mkdir(old_folder.c_str());
 
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	watcher.StartWatching();
+	watcher->StartWatching();
 
 	std::string new_folder = "C:\\Users\\ABO\\Desktop\\new";
 	std::rename(old_folder.c_str(), new_folder.c_str());
 
-	watcher.StopWatching();
+	watcher->StopWatching();
 
-	auto result = notify_queue.Pop();
+	auto result = notify_queue->Pop();
 	ASSERT_TRUE(result.has_value());
 
 	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
@@ -228,20 +194,16 @@ TEST(FolderTest, ChangeName) {
 	_rmdir(new_folder.c_str());
 }
 
-TEST(FolderTest, CreateText) {
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	watcher.StartWatching();
+TEST_F(FolderTest, CreateText) {
+	watcher->StartWatching();
 
 	std::string file_name = "C:\\Users\\ABO\\Desktop\\test.txt";
 	std::ofstream file{ file_name };
 	file.close();
 	
-	watcher.StopWatching();
+	watcher->StopWatching();
 
-	auto result = notify_queue.Pop();
+	auto result = notify_queue->Pop();
 	ASSERT_TRUE(result.has_value());
 
 	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
@@ -256,21 +218,17 @@ TEST(FolderTest, CreateText) {
 	std::remove(file_name.c_str());
 }
 
-TEST(FolderTest, ModifyText) {	
+TEST_F(FolderTest, ModifyText) {
 	std::string file_name = "C:\\Users\\ABO\\Desktop\\test.txt";
 	std::ofstream temp{ file_name };
 	temp.close();
 
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	monitor_client::NotifyQueue notify_queue;
-
-	monitor_client::FolderWatcher watcher(&notify_queue, path);
-	watcher.StartWatching();
+	watcher->StartWatching();
 
 	std::ofstream file{ file_name };
 	file.close();
 
-	auto result = notify_queue.Pop();
+	auto result = notify_queue->Pop();
 	ASSERT_TRUE(result.has_value());
 
 	monitor_client::common_utility::ChangeItemInfo result_info = result.value();

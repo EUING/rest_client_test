@@ -5,12 +5,12 @@
 #include "../monitor_client/sqlite_wrapper.h"
 
 #include "../monitor_client/common_utility.h"
-#include "../monitor_client/item_dao.h"
-#include "../monitor_client/item_sql.h"
+#include "../monitor_client/item_dao_sqlite.h"
+#include "../monitor_client/local_db.h"
 
 const wchar_t* const kTestDb = L"C:\\Users\\ABO\\Desktop\\새 폴더\\test_items.db";
 
-class ItemSql : public ::testing::Test {
+class LocalDb : public ::testing::Test {
 public:
 	void SetUp() override {
 		std::unique_ptr<sqlite_manager::utf16::SqliteWrapper> sqlite_wrapper = sqlite_manager::utf16::SqliteWrapper::Create(kTestDb);
@@ -35,10 +35,10 @@ public:
 	}
 };
 
-TEST_F(ItemSql, RenamedItem) {
-	monitor_client::ItemDao item_dao;
-	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
-	monitor_client::ItemSql sql(&item_dao);
+TEST_F(LocalDb, RenamedItem) {
+	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
+	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
+	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
 
 	monitor_client::common_utility::ChangeNameInfo info;
 	info.old_name = L"새 폴더/새 텍스트 파일.txt";
@@ -54,10 +54,10 @@ TEST_F(ItemSql, RenamedItem) {
 	ASSERT_EQ(100, file_info.size);
 }
 
-TEST_F(ItemSql, RemoveItem) {
-	monitor_client::ItemDao item_dao;
-	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
-	monitor_client::ItemSql sql(&item_dao);
+TEST_F(LocalDb, RemoveItem) {
+	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
+	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
+	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
 
 	ASSERT_TRUE(sql.RemoveItem(L"새 폴더/새 폴더"));
 
@@ -73,10 +73,10 @@ TEST_F(ItemSql, RemoveItem) {
 	ASSERT_FALSE(result.has_value());
 }
 
-TEST_F(ItemSql, AddFile) {
-	monitor_client::ItemDao item_dao;
-	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
-	monitor_client::ItemSql sql(&item_dao);
+TEST_F(LocalDb, AddFile) {
+	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
+	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
+	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
 
 	monitor_client::common_utility::FileInfo file_info;
 	file_info.name = L"새 텍스트 파일.txt";
@@ -96,10 +96,10 @@ TEST_F(ItemSql, AddFile) {
 	ASSERT_EQ(info.size, 10000);
 }
 
-TEST_F(ItemSql, ModifyFile) {
-	monitor_client::ItemDao item_dao;
-	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
-	monitor_client::ItemSql sql(&item_dao);
+TEST_F(LocalDb, ModifyFile) {
+	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
+	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
+	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
 
 	monitor_client::common_utility::FileInfo file_info;
 	file_info.name = L"새 텍스트 파일.txt";
@@ -115,10 +115,10 @@ TEST_F(ItemSql, ModifyFile) {
 	ASSERT_EQ(info.size, 1234);
 }
 
-TEST_F(ItemSql, AddFolder) {
-	monitor_client::ItemDao item_dao;
-	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
-	monitor_client::ItemSql sql(&item_dao);
+TEST_F(LocalDb, AddFolder) {
+	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
+	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
+	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
 
 	monitor_client::common_utility::FolderInfo folder_info;
 	folder_info.name = L"새 폴더/new folder";
