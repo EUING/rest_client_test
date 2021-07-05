@@ -82,7 +82,7 @@ TEST_F(LocalDb, AddFile) {
 	file_info.name = L"새 텍스트 파일.txt";
 	file_info.size = 10;
 
-	ASSERT_FALSE(sql.AddFile(file_info));
+	ASSERT_TRUE(sql.AddFile(file_info));
 	file_info.name = L"image.bmp";
 	file_info.size = 10000;
 
