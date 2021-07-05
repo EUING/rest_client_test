@@ -134,8 +134,9 @@ TEST_F(FolderTest, CreateFolder) {
 	watcher->StopWatching();
 	_rmdir(new_folder.c_str());
 
-	auto result = notify_queue->Pop();
+	auto result = notify_queue->Front();
 	ASSERT_TRUE(result.has_value());
+	notify_queue->Pop();
 
 	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
 
@@ -155,8 +156,9 @@ TEST_F(FolderTest, DeleteFolder) {
 
 	_rmdir(new_folder.c_str());
 
-	auto result = notify_queue->Pop();
+	auto result = notify_queue->Front();
 	ASSERT_TRUE(result.has_value());
+	notify_queue->Pop();
 
 	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
 
@@ -179,8 +181,9 @@ TEST_F(FolderTest, ChangeName) {
 
 	watcher->StopWatching();
 
-	auto result = notify_queue->Pop();
+	auto result = notify_queue->Front();
 	ASSERT_TRUE(result.has_value());
+	notify_queue->Pop();
 
 	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
 
@@ -203,8 +206,9 @@ TEST_F(FolderTest, CreateText) {
 	
 	watcher->StopWatching();
 
-	auto result = notify_queue->Pop();
+	auto result = notify_queue->Front();
 	ASSERT_TRUE(result.has_value());
+	notify_queue->Pop();
 
 	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
 
@@ -228,8 +232,9 @@ TEST_F(FolderTest, ModifyText) {
 	std::ofstream file{ file_name };
 	file.close();
 
-	auto result = notify_queue->Pop();
+	auto result = notify_queue->Front();
 	ASSERT_TRUE(result.has_value());
+	notify_queue->Pop();
 
 	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
 
