@@ -26,7 +26,7 @@ public:
 
 		wchar_t command_line[] = L"C:\\Users\\ABO\\Desktop\\repos\\monitor_dummy_server\\x64\\Release\\monitor_dummy_server.exe";
 		CreateProcess(NULL, command_line, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &startup_info, &process_info);
-		Sleep(1000);
+		Sleep(500);
 	}
 
 	void TearDown() override {
