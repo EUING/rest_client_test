@@ -93,7 +93,7 @@ TEST_F(EventTest, FileAdd) {
 	uint8_t* buffer = new uint8_t[1024 * 1024];
 	memset(buffer, 0, 1024 * 1024);
 
-	std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\test.txt";
+	std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\1\\1_1\\1_1_1\\1_1_1_1.txt";
 
 	monitor_client::common_utility::ChangeItemInfo reference;
 	reference.action = FILE_ACTION_ADDED;
@@ -151,8 +151,8 @@ TEST_F(EventTest, ItemNewName) {
 	uint8_t* buffer = new uint8_t[1024 * 1024];
 	memset(buffer, 0, 1024 * 1024);
 
-	std::wstring old_name = L"C:\\Users\\ABO\\Desktop\\»õ Æú´õ";
-	std::wstring new_name = L"C:\\Users\\ABO\\Desktop\\new folder";
+	std::wstring old_name = L"C:\\Users\\ABO\\Desktop\\1\\1_3\\1_3_1";
+	std::wstring new_name = L"C:\\Users\\ABO\\Desktop\\1\\1_3\\1_3_2";
 
 	monitor_client::common_utility::ChangeNameInfo change_name_info;
 	change_name_info.old_name = old_name;
@@ -171,6 +171,34 @@ TEST_F(EventTest, ItemNewName) {
 	ASSERT_TRUE(result.has_value());
 	ASSERT_EQ(reference.action, result.value().action);
 	ASSERT_EQ(reference.relative_path, result.value().relative_path);
+
+	delete[] buffer;
+}
+
+TEST_F(EventTest, Modify) {
+	uint8_t* buffer = new uint8_t[1024 * 1024];
+	memset(buffer, 0, 1024 * 1024);
+
+	monitor_client::common_utility::ChangeItemInfo change_item_info;
+	change_item_info.action = FILE_ACTION_MODIFIED;
+	change_item_info.relative_path = L"C:\\Users\\ABO\\Desktop\\1\\1_1\\1_1_1";
+
+	MakeNotify(buffer, change_item_info);
+
+	handler->PushEvent(buffer);
+
+	change_item_info.action = FILE_ACTION_MODIFIED;
+	change_item_info.relative_path = L"C:\\Users\\ABO\\Desktop\\1\\1_1\\1_1_1\\1_1_1_1.txt";
+
+	MakeNotify(buffer, change_item_info);
+
+	handler->PushEvent(buffer);
+
+	std::optional<monitor_client::common_utility::ChangeItemInfo> result = notify_queue->Front();
+
+	ASSERT_TRUE(result.has_value());
+	ASSERT_EQ(FILE_ACTION_MODIFIED, result.value().action);
+	ASSERT_EQ(L"C:\\Users\\ABO\\Desktop\\1\\1_1\\1_1_1\\1_1_1_1.txt", result.value().relative_path);
 
 	delete[] buffer;
 }

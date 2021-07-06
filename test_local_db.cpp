@@ -35,23 +35,65 @@ public:
 	}
 };
 
+TEST_F(LocalDb, AddItem) {
+	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
+	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
+	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
+
+	monitor_client::common_utility::ItemInfo item_info;
+	item_info.name = L"새 텍스트 파일.txt";
+	item_info.size = 10;
+
+	ASSERT_TRUE(sql.InsertItem(item_info));
+	item_info.name = L"image.bmp";
+	item_info.size = 10000;
+
+	ASSERT_TRUE(sql.InsertItem(item_info));
+
+	std::optional<monitor_client::common_utility::ItemInfo> result = sql.GetItemInfo(L"image.bmp");
+	ASSERT_TRUE(result.has_value());
+
+	auto info = result.value();
+	ASSERT_EQ(info.name, L"image.bmp");
+	ASSERT_EQ(info.size, 10000);
+}
+
+TEST_F(LocalDb, ModifyItem) {
+	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
+	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
+	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
+
+	monitor_client::common_utility::ItemInfo item_info;
+	item_info.name = L"새 텍스트 파일.txt";
+	item_info.size = 1234;
+	
+	ASSERT_TRUE(sql.InsertItem(item_info));
+
+	std::optional<monitor_client::common_utility::ItemInfo> result = sql.GetItemInfo(L"새 텍스트 파일.txt");
+	ASSERT_TRUE(result.has_value());
+
+	auto info = result.value();
+	ASSERT_EQ(info.name, L"새 텍스트 파일.txt");
+	ASSERT_EQ(info.size, 1234);
+}
+
 TEST_F(LocalDb, RenamedItem) {
 	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
 	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
 	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
 
-	monitor_client::common_utility::ChangeNameInfo info;
-	info.old_name = L"새 폴더/새 텍스트 파일.txt";
-	info.new_name = L"새 폴더/새 텍스트 파일2.txt";
+	monitor_client::common_utility::ChangeNameInfo name_info;
+	name_info.old_name = L"새 폴더/새 텍스트 파일.txt";
+	name_info.new_name = L"새 폴더/새 텍스트 파일2.txt";
 
-	ASSERT_TRUE(sql.RenameItem(info));
+	ASSERT_TRUE(sql.RenameItem(name_info));
 
-	std::optional<monitor_client::common_utility::FileInfo> result = sql.GetFileInfo(L"새 폴더/새 텍스트 파일2.txt");
+	std::optional<monitor_client::common_utility::ItemInfo> result = sql.GetItemInfo(L"새 폴더/새 텍스트 파일2.txt");
 	ASSERT_TRUE(result.has_value());
 
-	auto file_info = result.value();
-	ASSERT_EQ(L"새 텍스트 파일2.txt", file_info.name);
-	ASSERT_EQ(100, file_info.size);
+	auto item_info = result.value();
+	ASSERT_EQ(L"새 텍스트 파일2.txt", item_info.name);
+	ASSERT_EQ(100, item_info.size);
 }
 
 TEST_F(LocalDb, RemoveItem) {
@@ -61,74 +103,14 @@ TEST_F(LocalDb, RemoveItem) {
 
 	ASSERT_TRUE(sql.RemoveItem(L"새 폴더/새 폴더"));
 
-	std::optional<monitor_client::common_utility::FileInfo> result = sql.GetFileInfo(L"새 폴더/새 폴더");
+	std::optional<monitor_client::common_utility::ItemInfo> result = sql.GetItemInfo(L"새 폴더/새 폴더");
 	ASSERT_FALSE(result.has_value());
 
 	ASSERT_TRUE(sql.RemoveItem(L"새 폴더"));
 
-	result = sql.GetFileInfo(L"새 폴더/test.jpg");
+	result = sql.GetItemInfo(L"새 폴더/test.jpg");
 	ASSERT_FALSE(result.has_value());
 
-	result = sql.GetFileInfo(L"새 폴더/새 텍스트 파일.txt");
+	result = sql.GetItemInfo(L"새 폴더/새 텍스트 파일.txt");
 	ASSERT_FALSE(result.has_value());
-}
-
-TEST_F(LocalDb, AddFile) {
-	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
-	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
-	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
-
-	monitor_client::common_utility::FileInfo file_info;
-	file_info.name = L"새 텍스트 파일.txt";
-	file_info.size = 10;
-
-	ASSERT_TRUE(sql.AddFile(file_info));
-	file_info.name = L"image.bmp";
-	file_info.size = 10000;
-
-	ASSERT_TRUE(sql.AddFile(file_info));
-
-	std::optional<monitor_client::common_utility::FileInfo> result = sql.GetFileInfo(L"image.bmp");
-	ASSERT_TRUE(result.has_value());
-
-	auto info = result.value();
-	ASSERT_EQ(info.name, L"image.bmp");
-	ASSERT_EQ(info.size, 10000);
-}
-
-TEST_F(LocalDb, ModifyFile) {
-	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
-	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
-	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
-
-	monitor_client::common_utility::FileInfo file_info;
-	file_info.name = L"새 텍스트 파일.txt";
-	file_info.size = 1234;
-	
-	ASSERT_TRUE(sql.ModifyFile(file_info));
-
-	std::optional<monitor_client::common_utility::FileInfo> result = sql.GetFileInfo(L"새 텍스트 파일.txt");
-	ASSERT_TRUE(result.has_value());
-
-	auto info = result.value();
-	ASSERT_EQ(info.name, L"새 텍스트 파일.txt");
-	ASSERT_EQ(info.size, 1234);
-}
-
-TEST_F(LocalDb, AddFolder) {
-	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
-	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
-	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
-
-	monitor_client::common_utility::FolderInfo folder_info;
-	folder_info.name = L"새 폴더/new folder";
-
-	ASSERT_TRUE(sql.AddFolder(folder_info));
-
-	std::optional<monitor_client::common_utility::FileInfo> result = sql.GetFileInfo(L"새 폴더/new folder");
-	ASSERT_TRUE(result.has_value());
-
-	auto file_info = result.value();
-	ASSERT_EQ(file_info.name, L"new folder");
-	ASSERT_EQ(-1, file_info.size);
 }

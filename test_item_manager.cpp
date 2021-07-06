@@ -12,7 +12,7 @@ public:
 
 	void SetUp() override {
 		manager = new monitor_client::ItemManager(std::make_shared<monitor_client::NotifyQueue>(),
-			monitor_client::common_utility::NetworkInfo{ L"127.0.0.1", 56380 },
+			monitor_client::common_utility::NetworkInfo{ L"localhost", 8080 },
 			std::make_unique<monitor_client::ItemDaoDummy>());
 	}
 
@@ -26,7 +26,7 @@ TEST_F(FileTest, NoRunAndNoStop) {
 TEST_F(FileTest, NullCheck) {
 	delete manager;
 	manager = new monitor_client::ItemManager(nullptr,
-		monitor_client::common_utility::NetworkInfo{ L"127.0.0.1", 56380 },
+		monitor_client::common_utility::NetworkInfo{ L"localhost", 8080 },
 		std::make_unique<monitor_client::ItemDaoDummy>());
 
 	bool result = manager->Run();

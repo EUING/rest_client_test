@@ -1,52 +1,49 @@
 #include "pch.h"
 
-#include <variant>
 #include <optional>
 #include <string>
 
 #include "../monitor_client/common_utility.h"
 
-TEST(UtilityTest, ConvertTime) {
-	FILETIME time;
-	time.dwLowDateTime = 2366466959;
-	time.dwHighDateTime = 30893927;
-
-	std::optional<std::wstring> result = monitor_client::common_utility::ConvertTimestamp(time);
+TEST(UtilityTest, IsDirectory) {
+	std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019.lnk";
+	std::optional<bool> result = monitor_client::common_utility::IsDirectory(file_path);
 	ASSERT_TRUE(result.has_value());
+	ASSERT_FALSE(result.value());
 
-	auto iso_time = result.value();
-	ASSERT_EQ(L"2021-06-22 22:07:27", iso_time);
+	std::wstring folder_path = L"C:\\project";
+	result = monitor_client::common_utility::IsDirectory(folder_path);
+	ASSERT_TRUE(result.has_value());
+	ASSERT_TRUE(result.value());
+
+	std::wstring wrong_path = L"WrongPath";
+	result = monitor_client::common_utility::IsDirectory(wrong_path);
+	ASSERT_FALSE(result.has_value());
 }
 
-TEST(UtilityTest, GetFileInfo) {
+TEST(UtilityTest, GetItemInfo) {
 	std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019.lnk";
 
-	std::variant<std::monostate, monitor_client::common_utility::FileInfo, monitor_client::common_utility::FolderInfo> result = monitor_client::common_utility::GetItemInfo(file_path);
-	ASSERT_EQ(result.index(), 1);
+	std::optional<monitor_client::common_utility::ItemInfo> result = monitor_client::common_utility::GetItemInfo(file_path);
+	ASSERT_TRUE(result.has_value());
 
-	auto file_info = std::get<monitor_client::common_utility::FileInfo>(result);
-	ASSERT_EQ(file_info.name, file_path);
-	ASSERT_EQ(file_info.size, 1787);
-	ASSERT_EQ(file_info.creation_time, L"2021-06-17 09:48:43");
-	ASSERT_EQ(file_info.last_modified_time, L"2021-06-17 22:16:23");
-}
+	auto item_info = result.value();
+	ASSERT_EQ(item_info.name, file_path);
+	ASSERT_EQ(item_info.size, 1787);
 
-TEST(UtilityTest, GetFolderInfo) {
-	std::wstring file_name = L"C:\\project";
+	std::wstring folder_path = L"C:\\project";
 
-	std::variant<std::monostate, monitor_client::common_utility::FileInfo, monitor_client::common_utility::FolderInfo> result = monitor_client::common_utility::GetItemInfo(file_name);
-	ASSERT_EQ(result.index(), 2);
+	result = monitor_client::common_utility::GetItemInfo(folder_path);
+	ASSERT_TRUE(result.has_value());
 
-	auto file_info = std::get<monitor_client::common_utility::FolderInfo>(result);
-	ASSERT_EQ(file_info.name, file_name);
-	ASSERT_EQ(file_info.creation_time, L"2021-06-16 21:45:26");
-}
+	item_info = result.value();
+	ASSERT_EQ(item_info.name, folder_path);
+	ASSERT_EQ(item_info.size, -1);
 
-TEST(UtilityTest, GetItemInfoFromWrongPath) {
-	std::wstring file_name = L"WrongPath";
+	std::wstring wrong_path = L"WrongPath";
 
-	std::variant<std::monostate, monitor_client::common_utility::FileInfo, monitor_client::common_utility::FolderInfo> result = monitor_client::common_utility::GetItemInfo(file_name);
-	ASSERT_EQ(result.index(), 0);
+	result = monitor_client::common_utility::GetItemInfo(wrong_path);
+	ASSERT_FALSE(result.has_value());
 }
 
 TEST(UtilityTest, SplitName) {

@@ -38,6 +38,24 @@ public:
 	}
 };
 
+TEST_F(HttpTest, InsertItem) {	
+	monitor_client::common_utility::ItemInfo item_info;
+	item_info.name = L"새 텍스트 문서.txt";
+	item_info.size = 10;
+
+	bool result = item_http->InsertItem(item_info);
+	ASSERT_TRUE(result);
+}
+
+TEST_F(HttpTest, ModifyItem) {
+	monitor_client::common_utility::ItemInfo item_info;
+	item_info.name = L"새 텍스트 문서.txt";
+	item_info.size = 10;
+
+	bool result = item_http->InsertItem(item_info);
+	ASSERT_TRUE(result);
+}
+
 TEST_F(HttpTest, RenamedFile) {
 	monitor_client::common_utility::ChangeNameInfo info;
 	info.old_name = L"새 텍스트 문서.txt";
@@ -47,33 +65,7 @@ TEST_F(HttpTest, RenamedFile) {
 	ASSERT_TRUE(result);
 }
 
-TEST_F(HttpTest, AddFile) {	
-	monitor_client::common_utility::FileInfo file_info;
-	file_info.name = L"새 텍스트 문서.txt";
-	file_info.size = 10;
-	file_info.creation_time = L"2021-06-22T22:07:27";
-	file_info.last_modified_time = L"2021-06-22T22:07:27";
-
-	bool result = item_http->AddFile(file_info);
-	ASSERT_TRUE(result);
-}
-
-TEST_F(HttpTest, ModifyFile) {
-	monitor_client::common_utility::FileInfo file_info;
-	file_info.name = L"새 텍스트 문서.txt";
-	file_info.size = 10;
-	file_info.creation_time = L"2021-06-22T22:07:27";
-	file_info.last_modified_time = L"2021-06-22T22:07:27";
-
-	bool result = item_http->ModifyFile(file_info);
-	ASSERT_TRUE(result);
-}
-
-TEST_F(HttpTest, AddFolder) {
-	monitor_client::common_utility::FolderInfo folder_info;
-	folder_info.name = L"new folder";
-	folder_info.creation_time = L"2021-06-29 11:30:00";
-
-	bool result = item_http->AddFolder(folder_info);
+TEST_F(HttpTest, RemoveItem) {
+	bool result = item_http->RemoveItem(L"새 텍스트 문서.txt");
 	ASSERT_TRUE(result);
 }
