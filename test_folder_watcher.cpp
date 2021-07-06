@@ -128,11 +128,11 @@ TEST_F(FolderTest, ChangeFolder) {
 TEST_F(FolderTest, CreateFolder) {
 	watcher->StartWatching();
 
-	std::string new_folder = "C:\\Users\\ABO\\Desktop\\test";
-	_mkdir(new_folder.c_str());
+	std::wstring new_folder = L"C:\\Users\\ABO\\Desktop\\test";
+	_wmkdir(new_folder.c_str());
 
 	watcher->StopWatching();
-	_rmdir(new_folder.c_str());
+	RemoveDirectory(new_folder.c_str());
 
 	auto result = notify_queue->Front();
 	ASSERT_TRUE(result.has_value());
@@ -149,12 +149,14 @@ TEST_F(FolderTest, CreateFolder) {
 }
 
 TEST_F(FolderTest, DeleteFolder) {
-	std::string new_folder = "C:\\Users\\ABO\\Desktop\\test";
-	_mkdir(new_folder.c_str());
+	std::wstring new_folder = L"C:\\Users\\ABO\\Desktop\\test";
+	_wmkdir(new_folder.c_str());
 
 	watcher->StartWatching();
 
-	_rmdir(new_folder.c_str());
+	RemoveDirectory(new_folder.c_str());
+
+	watcher->StopWatching();
 
 	auto result = notify_queue->Front();
 	ASSERT_TRUE(result.has_value());
@@ -171,13 +173,13 @@ TEST_F(FolderTest, DeleteFolder) {
 }
 
 TEST_F(FolderTest, ChangeName) {
-	std::string old_folder = "C:\\Users\\ABO\\Desktop\\old";
-	_mkdir(old_folder.c_str());
+	std::wstring old_folder = L"C:\\Users\\ABO\\Desktop\\old";
+	_wmkdir(old_folder.c_str());
 
 	watcher->StartWatching();
 
-	std::string new_folder = "C:\\Users\\ABO\\Desktop\\new";
-	std::rename(old_folder.c_str(), new_folder.c_str());
+	std::wstring new_folder = L"C:\\Users\\ABO\\Desktop\\new";
+	_wrename(old_folder.c_str(), new_folder.c_str());
 
 	watcher->StopWatching();
 
@@ -194,13 +196,13 @@ TEST_F(FolderTest, ChangeName) {
 	ASSERT_EQ(result_info.action, info.action);
 	ASSERT_EQ(result_info.relative_path, info.relative_path);
 
-	_rmdir(new_folder.c_str());
+	_wrmdir(new_folder.c_str());
 }
 
 TEST_F(FolderTest, CreateText) {
 	watcher->StartWatching();
 
-	std::string file_name = "C:\\Users\\ABO\\Desktop\\test.txt";
+	std::wstring file_name = L"C:\\Users\\ABO\\Desktop\\test.txt";
 	std::ofstream file{ file_name };
 	file.close();
 	
@@ -219,11 +221,11 @@ TEST_F(FolderTest, CreateText) {
 	ASSERT_EQ(result_info.action, info.action);
 	ASSERT_EQ(result_info.relative_path, info.relative_path);
 	
-	std::remove(file_name.c_str());
+	_wremove(file_name.c_str());
 }
 
 TEST_F(FolderTest, ModifyText) {
-	std::string file_name = "C:\\Users\\ABO\\Desktop\\test.txt";
+	std::wstring file_name = L"C:\\Users\\ABO\\Desktop\\test.txt";
 	std::ofstream temp{ file_name };
 	temp.close();
 
@@ -245,5 +247,5 @@ TEST_F(FolderTest, ModifyText) {
 	ASSERT_EQ(result_info.action, info.action);
 	ASSERT_EQ(result_info.relative_path, info.relative_path);
 
-	std::remove(file_name.c_str());
+	_wremove(file_name.c_str());
 }
