@@ -14,17 +14,17 @@ public:
 	void SetUp() override {
 		std::unique_ptr<sqlite_manager::utf16::SqliteWrapper> sqlite_wrapper = sqlite_manager::utf16::SqliteWrapper::Create(kTestDb);
 
-		sqlite_wrapper->ExecuteUpdate(L"CREATE TABLE items(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, parent_id INTEGER NOT NULL, name TEXT NOT NULL, size INTERGER, UNIQUE(parent_id, name));");
+		sqlite_wrapper->ExecuteUpdate(L"CREATE TABLE items(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, parent_id INTEGER NOT NULL, name TEXT NOT NULL, size INTERGER NOT NULL, hash TEXT NOT NULL, UNIQUE(parent_id, name));");
 
-		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, parent_id) VALUES(10, '새 텍스트 파일.txt', 0);");
+		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, hash, parent_id) VALUES(10, '새 텍스트 파일.txt', 'hash', 0);");
 
-		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, parent_id) VALUES(-1, '새 폴더', 0);");
+		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, hash, parent_id) VALUES(-1, '새 폴더', '', 0);");
 
-		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, parent_id) VALUES(5000, 'test.jpg', 2);");
+		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, hash, parent_id) VALUES(5000, 'test.jpg', 'hash', 2);");
 
-		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, parent_id) VALUES(100, '새 텍스트 파일.txt', 2);");
+		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, hash, parent_id) VALUES(100, '새 텍스트 파일.txt', 'hash', 2);");
 
-		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, parent_id) VALUES(-1, '새 폴더', 2);");
+		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, hash, parent_id) VALUES(-1, '새 폴더', '', 2);");
 	}
 
 	void TearDown() override {
@@ -63,6 +63,7 @@ TEST_F(ItemDao, GetItemInfo) {
 	auto info = result.value();
 	ASSERT_EQ(info.name, L"새 텍스트 파일.txt");
 	ASSERT_EQ(info.size, 10);
+	ASSERT_EQ(info.hash, L"hash");
 
 	result = item_dao.GetItemInfo(L"새 텍스트 파일.txt", 2);
 	ASSERT_TRUE(result.has_value());
@@ -70,6 +71,7 @@ TEST_F(ItemDao, GetItemInfo) {
 	info = result.value();
 	ASSERT_EQ(info.name, L"새 텍스트 파일.txt");
 	ASSERT_EQ(info.size, 100);
+	ASSERT_EQ(info.hash, L"hash");
 }
 
 TEST_F(ItemDao, GetFolderContainList) {
@@ -85,10 +87,12 @@ TEST_F(ItemDao, GetFolderContainList) {
 	monitor_client::common_utility::ItemInfo info;
 	info.name = L"새 텍스트 파일.txt";
 	info.size = 10;
+	info.hash =  L"hash";
 	v2.push_back(info);
 	
 	info.name = L"새 폴더";
 	info.size = -1;
+	info.hash.clear();
 	v2.push_back(info);
 
 	ASSERT_EQ(v.size(), v2.size());
@@ -106,14 +110,17 @@ TEST_F(ItemDao, GetFolderContainList) {
 
 	info.name = L"test.jpg";
 	info.size = 5000;
+	info.hash = L"hash";
 	v2.push_back(info);
 
 	info.name = L"새 텍스트 파일.txt";
 	info.size = 100;
+	info.hash = L"hash";
 	v2.push_back(info);
 
 	info.name = L"새 폴더";
 	info.size = -1;
+	info.hash.clear();
 	v2.push_back(info);
 	
 	ASSERT_EQ(v.size(), v2.size());
@@ -145,6 +152,7 @@ TEST_F(ItemDao, ChangeItemName) {
 
 	ASSERT_EQ(item_info.name, L"change.txt");
 	ASSERT_EQ(item_info.size, 100);
+	ASSERT_EQ(item_info.hash, L"hash");
 }
 
 TEST_F(ItemDao, DeleteItemInfo) {
@@ -165,10 +173,12 @@ TEST_F(ItemDao, DeleteItemInfo) {
 	monitor_client::common_utility::ItemInfo info;
 	info.name = L"새 텍스트 파일.txt";
 	info.size = 100;
+	info.hash = L"hash";
 	v2.push_back(info);
 
 	info.name = L"새 폴더";
 	info.size = -1;
+	info.hash.clear();
 	v2.push_back(info);
 
 	ASSERT_EQ(v.size(), v2.size());
@@ -186,6 +196,7 @@ TEST_F(ItemDao, InsertItemInfo) {
 	monitor_client::common_utility::ItemInfo info;
 	info.name = L"test.xlsx";
 	info.size = 1024;
+	info.hash = L"hash";
 
 	std::optional<int> num = item_dao.InsertItemInfo(info, 0);
 	ASSERT_TRUE(num.has_value());
@@ -199,14 +210,17 @@ TEST_F(ItemDao, InsertItemInfo) {
 
 	info.name = L"test.xlsx";
 	info.size = 1024;
+	info.hash = L"hash";
 	v2.push_back(info);
 
 	info.name = L"새 텍스트 파일.txt";
 	info.size = 10;
+	info.hash = L"hash";
 	v2.push_back(info);
 
 	info.name = L"새 폴더";
 	info.size = -1;
+	info.hash.clear();
 	v2.push_back(info);	
 
 	ASSERT_EQ(v.size(), v2.size());
@@ -224,6 +238,7 @@ TEST_F(ItemDao, ModifyItemInfo) {
 	monitor_client::common_utility::ItemInfo info;
 	info.name = L"새 텍스트 파일.txt";
 	info.size = 500;
+	info.hash = L"hash";
 
 	std::optional<int> num = item_dao.ModifyItemInfo(info, 0);
 	ASSERT_TRUE(num.has_value());
@@ -235,4 +250,5 @@ TEST_F(ItemDao, ModifyItemInfo) {
 	auto new_info = result.value();
 	ASSERT_EQ(L"새 텍스트 파일.txt", new_info.name);
 	ASSERT_EQ(500, new_info.size);
+	ASSERT_EQ(L"hash", new_info.hash);
 }

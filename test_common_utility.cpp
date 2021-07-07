@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include <fstream>
 #include <optional>
 #include <string>
 
@@ -118,4 +119,25 @@ TEST(UtilityTest, SplitPath) {
 	ASSERT_EQ(item_name, L"새 폴더.txt");
 	ASSERT_EQ(split_parent_path[0], L"새 폴더");
 	ASSERT_EQ(split_parent_path[1], L"new folder");
+}
+
+TEST(UtilityTest, Sha256) {
+	std::optional<std::wstring> result = monitor_client::common_utility::GetSha256(L"WrongPath");
+	ASSERT_FALSE(result.has_value());
+
+	result = monitor_client::common_utility::GetSha256(L"C:\\Users\\ABO\\Desktop\\monitor");
+	ASSERT_FALSE(result.has_value());
+
+	result = monitor_client::common_utility::GetSha256(L"C:\\Users\\ABO\\Desktop\\monitor");
+	ASSERT_FALSE(result.has_value());
+
+	std::wstring file_name = L"C:\\Users\\ABO\\Desktop\\empty.txt";
+	std::ofstream temp{ file_name };
+	temp.close();
+
+	result = monitor_client::common_utility::GetSha256(file_name);
+	ASSERT_TRUE(result.has_value());
+	ASSERT_TRUE(L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", result.value());
+
+	_wremove(file_name.c_str());
 }

@@ -15,17 +15,17 @@ public:
 	void SetUp() override {
 		std::unique_ptr<sqlite_manager::utf16::SqliteWrapper> sqlite_wrapper = sqlite_manager::utf16::SqliteWrapper::Create(kTestDb);
 
-		sqlite_wrapper->ExecuteUpdate(L"CREATE TABLE items(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, parent_id INTEGER NOT NULL, name TEXT NOT NULL, size INTERGER, UNIQUE(parent_id, name));");
+		sqlite_wrapper->ExecuteUpdate(L"CREATE TABLE items(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, parent_id INTEGER NOT NULL, name TEXT NOT NULL, size INTERGER NOT NULL, hash TEXT NOT NULL, UNIQUE(parent_id, name));");
 
-		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, parent_id) VALUES(10, '새 텍스트 파일.txt', 0);");
+		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, hash, parent_id) VALUES(10, '새 텍스트 파일.txt', 'hash', 0);");
 
-		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, parent_id) VALUES(-1, '새 폴더', 0);");
+		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, hash, parent_id) VALUES(-1, '새 폴더', '', 0);");
 
-		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, parent_id) VALUES(5000, 'test.jpg', 2);");
+		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, hash, parent_id) VALUES(5000, 'test.jpg', 'hash', 2);");
 
-		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, parent_id) VALUES(100, '새 텍스트 파일.txt', 2);");
+		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, hash, parent_id) VALUES(100, '새 텍스트 파일.txt', 'hash', 2);");
 
-		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, parent_id) VALUES(-1, '새 폴더', 2);");
+		sqlite_wrapper->ExecuteUpdate(L"INSERT INTO items(size, name, hash, parent_id) VALUES(-1, '새 폴더', '', 2);");
 	}
 
 	void TearDown() override {
@@ -43,10 +43,12 @@ TEST_F(LocalDb, AddItem) {
 	monitor_client::common_utility::ItemInfo item_info;
 	item_info.name = L"새 텍스트 파일.txt";
 	item_info.size = 10;
+	item_info.hash = L"hash";
 
 	ASSERT_TRUE(sql.InsertItem(item_info));
 	item_info.name = L"image.bmp";
 	item_info.size = 10000;
+	item_info.hash = L"hash";
 
 	ASSERT_TRUE(sql.InsertItem(item_info));
 
@@ -56,6 +58,7 @@ TEST_F(LocalDb, AddItem) {
 	auto info = result.value();
 	ASSERT_EQ(info.name, L"image.bmp");
 	ASSERT_EQ(info.size, 10000);
+	ASSERT_EQ(info.hash, L"hash");
 }
 
 TEST_F(LocalDb, ModifyItem) {
@@ -66,7 +69,8 @@ TEST_F(LocalDb, ModifyItem) {
 	monitor_client::common_utility::ItemInfo item_info;
 	item_info.name = L"새 텍스트 파일.txt";
 	item_info.size = 1234;
-	
+	item_info.hash = L"hashhash";
+
 	ASSERT_TRUE(sql.InsertItem(item_info));
 
 	std::optional<monitor_client::common_utility::ItemInfo> result = sql.GetItemInfo(L"새 텍스트 파일.txt");
@@ -75,6 +79,7 @@ TEST_F(LocalDb, ModifyItem) {
 	auto info = result.value();
 	ASSERT_EQ(info.name, L"새 텍스트 파일.txt");
 	ASSERT_EQ(info.size, 1234);
+	ASSERT_EQ(info.hash, L"hashhash");
 }
 
 TEST_F(LocalDb, RenamedItem) {
@@ -94,6 +99,7 @@ TEST_F(LocalDb, RenamedItem) {
 	auto item_info = result.value();
 	ASSERT_EQ(L"새 텍스트 파일2.txt", item_info.name);
 	ASSERT_EQ(100, item_info.size);
+	ASSERT_EQ(item_info.hash, L"hash");
 }
 
 TEST_F(LocalDb, RemoveItem) {
