@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include <optional>
+#include <vector>
 
 #include "../monitor_client/sqlite_wrapper.h"
 
@@ -34,6 +35,123 @@ public:
 		sqlite_wrapper->ExecuteUpdate(L"DROP TABLE items");
 	}
 };
+
+TEST_F(LocalDb, GetParentId) {
+	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
+	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
+	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
+
+	std::optional<int> result = sql.GetParentId(L"새 폴더");
+	ASSERT_TRUE(result.has_value());
+	ASSERT_EQ(0, result.value());
+
+	result = sql.GetParentId(L"없는 폴더/없는 파일");
+	ASSERT_FALSE(result.has_value());
+	
+	result = sql.GetParentId(L"새 폴더/test.jpg");
+	ASSERT_TRUE(result.has_value());
+	ASSERT_EQ(2, result.value());
+}
+
+TEST_F(LocalDb, GetItemInfo) {
+	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
+	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
+	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
+
+	std::optional<monitor_client::common_utility::ItemInfo> result = sql.GetItemInfo(L"새 폴더");
+	ASSERT_TRUE(result.has_value());
+	auto item_info = result.value();
+
+	result = sql.GetItemInfo(L"없음.txt");
+	ASSERT_FALSE(result.has_value());
+
+	ASSERT_EQ(item_info.name, L"새 폴더");
+	ASSERT_EQ(item_info.size, -1);
+	ASSERT_TRUE(item_info.hash.empty());
+
+	result = sql.GetItemInfo(L"새 텍스트 파일.txt");
+	ASSERT_TRUE(result.has_value());
+	item_info = result.value();
+
+	ASSERT_EQ(item_info.name, L"새 텍스트 파일.txt");
+	ASSERT_EQ(item_info.size, 10);
+	ASSERT_EQ(item_info.hash, L"hash");	
+
+	result = sql.GetItemInfo(L"새 폴더/새 텍스트 파일.txt");
+	ASSERT_TRUE(result.has_value());
+	item_info = result.value();
+
+	ASSERT_EQ(item_info.name, L"새 텍스트 파일.txt");
+	ASSERT_EQ(item_info.size, 100);
+	ASSERT_EQ(item_info.hash, L"hash");
+}
+
+TEST_F(LocalDb, GetFolderContainList) {
+	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();
+	ASSERT_TRUE(item_dao_sqlite->OpenDatabase(kTestDb));
+	monitor_client::LocalDb sql(std::move(item_dao_sqlite));
+
+	std::optional<std::vector<monitor_client::common_utility::ItemInfo>> result = sql.GetFolderContainList(L"없는 폴더");
+	ASSERT_FALSE(result.has_value());
+
+	result = sql.GetFolderContainList(L"새 텍스트 파일.txt");
+	ASSERT_FALSE(result.has_value());
+
+	result = sql.GetFolderContainList();
+	ASSERT_TRUE(result.has_value());
+
+	std::vector<monitor_client::common_utility::ItemInfo> v = result.value();
+	std::vector<monitor_client::common_utility::ItemInfo> v2;
+
+	monitor_client::common_utility::ItemInfo info;
+	info.name = L"새 텍스트 파일.txt";
+	info.size = 10;
+	info.hash = L"hash";
+	v2.push_back(info);
+
+	info.name = L"새 폴더";
+	info.size = -1;
+	info.hash.clear();
+	v2.push_back(info);
+	
+	ASSERT_EQ(v.size(), v2.size());
+
+	for (int i = 0; i < v.size(); ++i) {
+		ASSERT_EQ(v[i].name, v2[i].name);
+		ASSERT_EQ(v[i].size, v2[i].size);
+		ASSERT_EQ(v[i].hash, v2[i].hash);
+	}
+
+	v.clear();
+	v2.clear();
+
+	result = sql.GetFolderContainList(L"새 폴더");
+	ASSERT_TRUE(result.has_value());
+	v = result.value();
+
+	info.name = L"test.jpg";
+	info.size = 5000;
+	info.hash = L"hash";
+	v2.push_back(info);
+
+	info.name = L"새 텍스트 파일.txt";
+	info.size = 100;
+	info.hash = L"hash";
+	v2.push_back(info);
+
+	info.name = L"새 폴더";
+	info.size = -1;
+	info.hash.clear();
+	v2.push_back(info);
+
+	ASSERT_EQ(v.size(), v2.size());
+
+	for (int i = 0; i < v.size(); ++i) {
+		ASSERT_EQ(v[i].name, v2[i].name);
+		ASSERT_EQ(v[i].size, v2[i].size);
+		ASSERT_EQ(v[i].hash, v2[i].hash);
+	}
+}
 
 TEST_F(LocalDb, AddItem) {
 	std::unique_ptr<monitor_client::ItemDao> item_dao_sqlite = std::make_unique<monitor_client::ItemDaoSqlite>();

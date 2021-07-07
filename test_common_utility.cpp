@@ -137,7 +137,7 @@ TEST(UtilityTest, Sha256) {
 
 	result = monitor_client::common_utility::GetSha256(file_name);
 	ASSERT_TRUE(result.has_value());
-	ASSERT_TRUE(L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", result.value());
+	ASSERT_EQ(L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", result.value());
 
 	_wremove(file_name.c_str());
 }
