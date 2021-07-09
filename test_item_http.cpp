@@ -38,6 +38,39 @@ public:
 	}
 };
 
+TEST_F(HttpTest, GetItemInfo) {
+	std::optional<monitor_client::common_utility::ItemInfo> result = item_http->GetItemInfo(L"test");
+	ASSERT_TRUE(result.has_value());
+
+	auto item_info = result.value();
+	ASSERT_EQ(item_info.name, L"test");
+	ASSERT_EQ(item_info.size, 0);
+	ASSERT_EQ(item_info.hash, L"hash");
+}
+
+TEST_F(HttpTest, GetFolderContainList) {
+	std::optional<std::vector<monitor_client::common_utility::ItemInfo>> result = item_http->GetFolderContainList();
+	ASSERT_TRUE(result.has_value());
+
+	auto v = result.value();
+
+	ASSERT_EQ(v[0].name, L"1_1");
+	ASSERT_EQ(v[0].size, -1);
+	ASSERT_TRUE(v[0].hash.empty());
+
+	ASSERT_EQ(v[1].name, L"1_2");
+	ASSERT_EQ(v[1].size, -1);
+	ASSERT_TRUE(v[1].hash.empty());
+
+	ASSERT_EQ(v[2].name, L"1_3");
+	ASSERT_EQ(v[2].size, -1);
+	ASSERT_TRUE(v[2].hash.empty());
+
+	ASSERT_EQ(v[3].name, L"1_4");
+	ASSERT_EQ(v[3].size, -1);
+	ASSERT_TRUE(v[3].hash.empty());
+}
+
 TEST_F(HttpTest, InsertItem) {	
 	monitor_client::common_utility::ItemInfo item_info;
 	item_info.name = L"새 텍스트 문서.txt";
