@@ -7,7 +7,6 @@
 #include <iostream>
 #include <string>
 
-#include "../monitor_client/common_utility.h"
 #include "../monitor_client/folder_watcher.h"
 #include "../monitor_client/notify_queue.h"
 

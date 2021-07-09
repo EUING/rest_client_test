@@ -6,7 +6,6 @@
 #include <fstream>
 #include <string>
 
-#include "../monitor_client/common_utility.h"
 #include "../monitor_client/event_handler.h"
 
 class EventTest : public ::testing::Test {

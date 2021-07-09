@@ -2,7 +2,6 @@
 
 #include <optional>
 
-#include "../monitor_client/common_utility.h"
 #include "../monitor_client/item_dao_sqlite.h"
 
 #include "../monitor_client/sqlite_wrapper.h"

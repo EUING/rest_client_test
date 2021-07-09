@@ -5,7 +5,6 @@
 #include <optional>
 #include <vector>
 
-#include "../monitor_client/common_utility.h"
 #include "../monitor_client/item_http.h"
 
 class HttpTest : public ::testing::Test {
