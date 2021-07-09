@@ -3,8 +3,7 @@
 #include <unordered_set>
 #include <vector>
 #include <string>
-#include <map>
-#include <set>
+#include <algorithm>
 
 #include "../monitor_client/diff_check.h"
 #include "../monitor_client/item_dao_sqlite.h"
@@ -143,6 +142,22 @@ public:
 
 		return reference;
 	}
+
+	void ItemInfoSort(std::vector< monitor_client::common_utility::ItemInfo>& v) {
+		auto cmp = [](const monitor_client::common_utility::ItemInfo& lhs, const monitor_client::common_utility::ItemInfo& rhs) {
+			return lhs.name < rhs.name;
+		};
+
+		std::sort(v.begin(), v.end(), cmp);
+	}
+
+	void DiffInfoSort(std::vector< monitor_client::diff_check::DiffInfo>& v) {
+		auto cmp = [](const monitor_client::diff_check::DiffInfo& lhs, const monitor_client::diff_check::DiffInfo& rhs) {
+			return lhs.os_item.name < rhs.os_item.name;
+		};
+
+		std::sort(v.begin(), v.end(), cmp);
+	}
 };
 
 TEST_F(DiffTest, GetWindowSubFolder) {
@@ -264,19 +279,26 @@ TEST_F(DiffTest, MakeLocalDiffList) {
 	monitor_client::common_utility::ItemList db(reference.begin(), reference.end());
 	monitor_client::common_utility::ItemList os(reference.begin(), reference.end());
 
-	std::set<monitor_client::common_utility::ItemInfo> create_list;
-	monitor_client::common_utility::ItemList equal_list = reference;
-	
-	std::unordered_set<monitor_client::diff_check::DiffInfo> modify_list;
+	std::vector<monitor_client::common_utility::ItemInfo> create_list;
+	std::vector<monitor_client::common_utility::ItemInfo> equal_list(reference.begin(), reference.end());
+	std::vector<monitor_client::diff_check::DiffInfo> modify_list;
 
-	equal_list.erase({ L"1_1/1_1_1/1_1_1_1.txt" });
+	int index = -1;
+	for (int i = 0; i < equal_list.size(); ++i) {
+		if (equal_list[i].name == L"1_1/1_1_1/1_1_1_1.txt") {
+			index = i;
+			break;
+		}
+	}
+
+	equal_list.erase(equal_list.begin() + index);
 
 	monitor_client::common_utility::ItemInfo info;
 	info.name = L"1_5.txt";
 	info.size = 0;
 	info.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 	os.insert(info);
-	create_list.insert(info);
+	create_list.push_back(info);
 
 	info.name = L"1_1/1_1_1/1_1_1_1.txt";
 	info.size = 0;
@@ -286,7 +308,7 @@ TEST_F(DiffTest, MakeLocalDiffList) {
 	modify_info.name = L"1_1/1_1_1/1_1_1_1.txt";
 	modify_info.size = 1;
 	modify_info.hash = L"modify";
-	modify_list.insert({ info, modify_info});
+	modify_list.push_back({ info.hash, modify_info});
 
 	auto change_value = os.extract({ L"1_1/1_1_1/1_1_1_1.txt" });
 	ASSERT_FALSE(change_value.empty());
@@ -296,51 +318,39 @@ TEST_F(DiffTest, MakeLocalDiffList) {
 	os.insert(std::move(change_value));
 
 	monitor_client::diff_check::LocalDiffList list = monitor_client::diff_check::MakeLocalDiffList(os, db);
-	std::set<monitor_client::common_utility::ItemInfo> result_create_list = list.create_list;
-	monitor_client::common_utility::ItemList result_equal_list = list.equal_list;
-	std::unordered_set<monitor_client::diff_check::DiffInfo> result_modify_list = list.modify_list;
+	std::vector<monitor_client::common_utility::ItemInfo> result_create_list = list.create_list;
+	std::vector<monitor_client::common_utility::ItemInfo> result_equal_list = list.equal_list;
+	std::vector<monitor_client::diff_check::DiffInfo> result_modify_list = list.modify_list;
 
 	ASSERT_EQ(create_list.size(), result_create_list.size());
-	auto iter1 = create_list.begin();
-	auto iter2 = result_create_list.begin();
+	ASSERT_EQ(equal_list.size(), result_equal_list.size());
+	ASSERT_EQ(modify_list.size(), result_modify_list.size());
+
+	ItemInfoSort(create_list);
+	ItemInfoSort(equal_list);
+	DiffInfoSort(modify_list);
+
+	ItemInfoSort(result_create_list);
+	ItemInfoSort(result_equal_list);
+	DiffInfoSort(result_modify_list);
 
 	for (int i = 0; i < create_list.size(); ++i) {
-		ASSERT_EQ(iter1->name, iter2->name);
-		ASSERT_EQ(iter1->size, iter2->size);
-		ASSERT_EQ(iter1->hash, iter2->hash);
-
-		++iter1;
-		++iter2;
+		ASSERT_EQ(create_list[i].name, result_create_list[i].name);
+		ASSERT_EQ(create_list[i].size, result_create_list[i].size);
+		ASSERT_EQ(create_list[i].hash, result_create_list[i].hash);
 	}
-
-	ASSERT_EQ(equal_list.size(), result_equal_list.size());
-	auto iter3 = equal_list.begin();
-	auto iter4 = result_equal_list.begin();
 
 	for (int i = 0; i < equal_list.size(); ++i) {
-		ASSERT_EQ(iter3->name, iter4->name);
-		ASSERT_EQ(iter3->size, iter4->size);
-		ASSERT_EQ(iter3->hash, iter4->hash);
-
-		++iter3;
-		++iter4;
+		ASSERT_EQ(equal_list[i].name, result_equal_list[i].name);
+		ASSERT_EQ(equal_list[i].size, result_equal_list[i].size);
+		ASSERT_EQ(equal_list[i].hash, result_equal_list[i].hash);
 	}
 
-	ASSERT_EQ(modify_list.size(), result_modify_list.size());
-	auto iter5 = modify_list.begin();
-	auto iter6 = result_modify_list.begin();
-
 	for (int i = 0; i < modify_list.size(); ++i) {
-		ASSERT_EQ(iter5->other_item.name, iter6->other_item.name);
-		ASSERT_EQ(iter5->other_item.size, iter6->other_item.size);
-		ASSERT_EQ(iter5->other_item.hash, iter6->other_item.hash);
-
-		ASSERT_EQ(iter5->os_item.name, iter6->os_item.name);
-		ASSERT_EQ(iter5->os_item.size, iter6->os_item.size);
-		ASSERT_EQ(iter5->os_item.hash, iter6->os_item.hash);
-
-		++iter5;
-		++iter6;
+		ASSERT_EQ(modify_list[i].prev_hash, result_modify_list[i].prev_hash);
+		ASSERT_EQ(modify_list[i].os_item.name, result_modify_list[i].os_item.name);
+		ASSERT_EQ(modify_list[i].os_item.size, result_modify_list[i].os_item.size);
+		ASSERT_EQ(modify_list[i].os_item.hash, result_modify_list[i].os_item.hash);
 	}
 }
 
@@ -352,25 +362,21 @@ TEST_F(DiffTest, NoLocalChange) {
 	ASSERT_TRUE(local_diff_list.modify_list.empty());
 	ASSERT_EQ(reference.size(), local_diff_list.equal_list.size());
 
-	std::set<monitor_client::common_utility::ItemInfo> m1(reference.begin(), reference.end());
-	std::set<monitor_client::common_utility::ItemInfo> m2(local_diff_list.equal_list.begin(), local_diff_list.equal_list.end());
+	std::vector<monitor_client::common_utility::ItemInfo> v(reference.begin(), reference.end());
+	ItemInfoSort(v);
+	ItemInfoSort(local_diff_list.equal_list);
 
-	auto iter1 = m1.begin();
-	auto iter2 = m2.begin();
-
-	for (int i = 0; i < m1.size(); ++i) {
-		ASSERT_EQ(iter1->name, iter2->name);
-		ASSERT_EQ(iter1->size, iter2->size);
-		ASSERT_EQ(iter1->hash, iter2->hash);
-
-		++iter1;
-		++iter2;
+	for (int i = 0; i < local_diff_list.equal_list.size(); ++i) {
+		ASSERT_EQ(local_diff_list.equal_list[i].name, v[i].name);
+		ASSERT_EQ(local_diff_list.equal_list[i].size, v[i].size);
+		ASSERT_EQ(local_diff_list.equal_list[i].hash, v[i].hash);
 	}
 	
 	monitor_client::diff_check::ServerDiffList server_diff_list = monitor_client::diff_check::MakeServerDiffList(reference, local_diff_list);
 	ASSERT_TRUE(server_diff_list.upload_request_list.empty());
 	ASSERT_TRUE(server_diff_list.download_request_list.empty());
 	ASSERT_TRUE(server_diff_list.conflict_list.empty());
+	ASSERT_TRUE(server_diff_list.delete_list.empty());
 }
 
 TEST_F(DiffTest, LocalChangeNoConflict) {
@@ -378,315 +384,354 @@ TEST_F(DiffTest, LocalChangeNoConflict) {
 	monitor_client::common_utility::ItemList os = server;
 	monitor_client::common_utility::ItemList db = server;
 
-	monitor_client::common_utility::ItemInfo info;
-	info.name = L"1_5.txt";
-	info.size = 0;
-	info.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-	os.insert(info);
+	std::wstring server_delete_file1 = L"1_3/1_3_1/1_3_1_1.txt";
+	server.erase({ server_delete_file1 });
+	
+	std::wstring local_delete_file1 = L"1_1/1_1_1/1_1_1_1.txt";
+	os.erase({ local_delete_file1 });
 
-	info.name = L"1_4/1_4_1/1_4_1_2.txt";
-	info.size = 100;
-	info.hash = L"new file";
-	os.insert(info);
+	monitor_client::common_utility::ItemInfo new_file1;
+	new_file1.name = L"1_4/1_4_1/1_4_1_2.txt";
+	new_file1.size = 100;
+	new_file1.hash = L"new file";
+	os.insert(new_file1);
 
-	auto change_value = os.extract({ L"1_4/1_4_1/1_4_1_1.txt" });
+	monitor_client::common_utility::ItemInfo new_file2;
+	new_file2.name = L"1_5.txt";
+	new_file2.size = 0;
+	new_file2.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+	os.insert(new_file2);
+
+	monitor_client::common_utility::ItemInfo modify_file1;
+	modify_file1.name = L"1_2/1_2_1/1_2_1_1.txt";
+	modify_file1.size = 500;
+	modify_file1.hash = L"modify";
+
+	monitor_client::common_utility::ItemInfo modify_file2;
+	modify_file2.name = L"1_4/1_4_1/1_4_1_1.txt";
+	modify_file2.size = 10;
+	modify_file2.hash = L"modify";
+
+	auto change_value = os.extract(modify_file1);
 	ASSERT_FALSE(change_value.empty());
 
-	change_value.value().size = 10;
-	change_value.value().hash = L"modify";
+	change_value.value().size = modify_file1.size;
+	change_value.value().hash = modify_file1.hash;
 	os.insert(std::move(change_value));
 
-	auto change_value2 = os.extract({ L"1_2/1_2_1/1_2_1_1.txt" });
-	ASSERT_FALSE(change_value2.empty());
+	change_value = os.extract(modify_file2);
+	ASSERT_FALSE(change_value.empty());
 
-	change_value2.value().size = 5000;
-	change_value2.value().hash = L"modify";
-	os.insert(std::move(change_value2));
-
-	os.erase({ L"1_1/1_1_1/1_1_1_1.txt" });
+	change_value.value().size = modify_file2.size;
+	change_value.value().hash = modify_file2.hash;
+	os.insert(std::move(change_value));	
 
 	monitor_client::diff_check::LocalDiffList local_diff_list = monitor_client::diff_check::MakeLocalDiffList(os, db);
-	ASSERT_EQ(local_diff_list.create_list.size(), 2);
 
-	auto iter = local_diff_list.create_list.begin();
-	ASSERT_EQ(iter->name, L"1_4/1_4_1/1_4_1_2.txt");
-	ASSERT_EQ(iter->size, 100);
-	ASSERT_EQ(iter->hash, L"new file");
-	++iter;
+	auto create_list = local_diff_list.create_list;
+	auto equal_list = local_diff_list.equal_list;
+	auto modify_list = local_diff_list.modify_list;
 
-	ASSERT_EQ(iter->name, L"1_5.txt");
-	ASSERT_EQ(iter->size, 0);
-	ASSERT_EQ(iter->hash, L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+	ItemInfoSort(create_list);
+	ItemInfoSort(equal_list);
+	DiffInfoSort(modify_list);
 
-	ASSERT_EQ(local_diff_list.modify_list.size(), 2);
-	for (const auto& iter : local_diff_list.modify_list) {
-		if (iter.os_item.name == L"1_4/1_4_1/1_4_1_1.txt") {
-			std::wstring name = L"1_4/1_4_1/1_4_1_1.txt";
+	ASSERT_EQ(create_list.size(), 2);
 
-			auto db_iter = db.find({ name });
-			ASSERT_TRUE(db.end() != db_iter);
-			ASSERT_EQ(iter.other_item.size, db_iter->size);
-			ASSERT_EQ(iter.other_item.hash, db_iter->hash);
+	ASSERT_EQ(create_list[0].name, new_file1.name);
+	ASSERT_EQ(create_list[0].size, new_file1.size);
+	ASSERT_EQ(create_list[0].hash, new_file1.hash);
 
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.os_item.size, os_iter->size);
-			ASSERT_EQ(iter.os_item.hash, os_iter->hash);
-		}
-		else if (iter.os_item.name == L"1_2/1_2_1/1_2_1_1.txt") {
-			std::wstring name = L"1_2/1_2_1/1_2_1_1.txt";
-			auto db_iter = db.find({ name });
-			ASSERT_TRUE(db.end() != db_iter);
-			ASSERT_EQ(iter.other_item.size, db_iter->size);
-			ASSERT_EQ(iter.other_item.hash, db_iter->hash);
+	ASSERT_EQ(create_list[1].name, new_file2.name);
+	ASSERT_EQ(create_list[1].size, new_file2.size);
+	ASSERT_EQ(create_list[1].hash, new_file2.hash);
 
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.os_item.size, os_iter->size);
-			ASSERT_EQ(iter.os_item.hash, os_iter->hash);
-		}
-		else {
-			ASSERT_TRUE(false);
-		}
-	}
+	ASSERT_EQ(modify_list.size(), 2);
 
-	ASSERT_EQ(local_diff_list.equal_list.size(), 9);
+	ASSERT_EQ(modify_list[0].prev_hash, L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+	ASSERT_EQ(modify_list[0].os_item.name, modify_file1.name);
+	ASSERT_EQ(modify_list[0].os_item.size, modify_file1.size);
+	ASSERT_EQ(modify_list[0].os_item.hash, modify_file1.hash);
+	
+	ASSERT_EQ(modify_list[1].prev_hash, L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+	ASSERT_EQ(modify_list[1].os_item.name, modify_file2.name);
+	ASSERT_EQ(modify_list[1].os_item.size, modify_file2.size);
+	ASSERT_EQ(modify_list[1].os_item.hash, modify_file2.hash);
 
-	server.erase({ L"1_3/1_3_1/1_3_1_1.txt" });
+	ASSERT_EQ(equal_list.size(), 9);
 
 	monitor_client::diff_check::ServerDiffList server_diff_list = monitor_client::diff_check::MakeServerDiffList(server, local_diff_list);
 	ASSERT_TRUE(server_diff_list.conflict_list.empty());
 
 	ASSERT_EQ(server_diff_list.upload_request_list.size(), 4);
 
-	for (auto iter : server_diff_list.upload_request_list) {
-		if (iter.name == L"1_5.txt") {
-			std::wstring name = L"1_5.txt";
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.size, os_iter->size);
-			ASSERT_EQ(iter.hash, os_iter->hash);
-		}
-		else if (iter.name == L"1_4/1_4_1/1_4_1_2.txt") {
-			std::wstring name = L"1_4/1_4_1/1_4_1_2.txt";
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.size, os_iter->size);
-			ASSERT_EQ(iter.hash, os_iter->hash);
-		}
-		else if (iter.name == L"1_4/1_4_1/1_4_1_1.txt") {
-			std::wstring name = L"1_4/1_4_1/1_4_1_1.txt";
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.size, os_iter->size);
-			ASSERT_EQ(iter.hash, os_iter->hash);
-		}
-		else if (iter.name == L"1_2/1_2_1/1_2_1_1.txt") {
-			std::wstring name = L"1_2/1_2_1/1_2_1_1.txt";
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.size, os_iter->size);
-			ASSERT_EQ(iter.hash, os_iter->hash);
-		}
-		else {
-			ASSERT_TRUE(false);
-		}
-	}
+	ASSERT_EQ(server_diff_list.upload_request_list[0].name, modify_file1.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[0].size, modify_file1.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[0].hash, modify_file1.hash);
+
+	ASSERT_EQ(server_diff_list.upload_request_list[1].name, modify_file2.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[1].size, modify_file2.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[1].hash, modify_file2.hash);
+
+	ASSERT_EQ(server_diff_list.upload_request_list[2].name, new_file1.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[2].size, new_file1.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[2].hash, new_file1.hash);
+
+	ASSERT_EQ(server_diff_list.upload_request_list[3].name, new_file2.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[3].size, new_file2.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[3].hash, new_file2.hash);
 
 	ASSERT_EQ(server_diff_list.download_request_list.size(), 1);
-	ASSERT_EQ(server_diff_list.download_request_list[0], L"1_1/1_1_1/1_1_1_1.txt");
+	ASSERT_EQ(server_diff_list.download_request_list[0], local_delete_file1);
 
 	ASSERT_EQ(server_diff_list.delete_list.size(), 1);
-	ASSERT_EQ(server_diff_list.delete_list[0], L"1_3/1_3_1/1_3_1_1.txt");
+	ASSERT_EQ(server_diff_list.delete_list[0], server_delete_file1);
 }
-
 TEST_F(DiffTest, LocalChangeConflict) {
 	monitor_client::common_utility::ItemList server = GetReferece();
 	monitor_client::common_utility::ItemList os = server;
 	monitor_client::common_utility::ItemList db = server;
 
-	monitor_client::common_utility::ItemInfo info;
-	info.name = L"1_5.txt";
-	info.size = 0;
-	info.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-	os.insert(info);
+	std::wstring local_delete_file1 = L"1_1/1_1_1/1_1_1_1.txt";
+	os.erase({ local_delete_file1 });
 
-	info.name = L"1_6.txt";
-	info.size = 0;
-	info.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-	os.insert(info);
+	monitor_client::common_utility::ItemInfo new_file1;
+	new_file1.name = L"1_4/1_4_1/1_4_1_2.txt";
+	new_file1.size = 100;
+	new_file1.hash = L"new file";
+	os.insert(new_file1);
 
-	info.name = L"1_7";
-	info.size = -1;
-	info.hash.clear();
-	os.insert(info);
+	monitor_client::common_utility::ItemInfo new_file2;
+	new_file2.name = L"1_5.txt";
+	new_file2.size = 0;
+	new_file2.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+	os.insert(new_file2);
 
-	info.name = L"1_4/1_4_1/1_4_1_2.txt";
-	info.size = 100;
-	info.hash = L"new file";
-	os.insert(info);
+	monitor_client::common_utility::ItemInfo new_same;
+	new_same.name = L"1_1/1_1_1/1_1_1_2.txt";
+	new_same.size = 0;
+	new_same.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+	os.insert(new_same);
+	server.insert(new_same);
 
-	auto change_value = os.extract({ L"1_4/1_4_1/1_4_1_1.txt" });
+	monitor_client::common_utility::ItemInfo new_local_conflict1;
+	new_local_conflict1.name = L"1_6.txt";
+	new_local_conflict1.size = 10;
+	new_local_conflict1.hash = L"local conflict";
+	os.insert(new_local_conflict1);
+
+	monitor_client::common_utility::ItemInfo new_server_conflict1 = new_local_conflict1;
+	new_server_conflict1.size = 100;
+	new_server_conflict1.hash = L"server conflict";
+	server.insert(new_server_conflict1);
+
+	monitor_client::common_utility::ItemInfo modify_file1;
+	modify_file1.name = L"1_2/1_2_1/1_2_1_1.txt";
+	modify_file1.size = 500;
+	modify_file1.hash = L"modify";
+
+	monitor_client::common_utility::ItemInfo modify_file2;
+	modify_file2.name = L"1_4/1_4_1/1_4_1_1.txt";
+	modify_file2.size = 10;
+	modify_file2.hash = L"modify";
+
+	monitor_client::common_utility::ItemInfo modify_local_conflict1;
+	modify_local_conflict1.name = L"1_3/1_3_1/1_3_1_1.txt";
+	modify_local_conflict1.size = 10;
+	modify_local_conflict1.hash = L"local conflict";
+
+	monitor_client::common_utility::ItemInfo modify_server_conflict1 = modify_local_conflict1;
+	modify_server_conflict1.name = L"1_3/1_3_1/1_3_1_1.txt";
+	modify_server_conflict1.size = 100;
+	modify_server_conflict1.hash = L"server conflict";
+
+	auto change_value = os.extract(modify_file1);
 	ASSERT_FALSE(change_value.empty());
 
-	change_value.value().size = 10;
-	change_value.value().hash = L"modify";
+	change_value.value().size = modify_file1.size;
+	change_value.value().hash = modify_file1.hash;
 	os.insert(std::move(change_value));
 
-	auto change_value2 = os.extract({ L"1_2/1_2_1/1_2_1_1.txt" });
-	ASSERT_FALSE(change_value2.empty());
+	change_value = os.extract(modify_file2);
+	ASSERT_FALSE(change_value.empty());
 
-	change_value2.value().size = 5000;
-	change_value2.value().hash = L"modify";
-	os.insert(std::move(change_value2));
+	change_value.value().size = modify_file2.size;
+	change_value.value().hash = modify_file2.hash;
+	os.insert(std::move(change_value));
 
-	os.erase({L"1_1/1_1_1/1_1_1_1.txt"});
+	change_value = os.extract(modify_local_conflict1);
+	ASSERT_FALSE(change_value.empty());
+
+	change_value.value().size = modify_local_conflict1.size;
+	change_value.value().hash = modify_local_conflict1.hash;
+	os.insert(std::move(change_value));
+
+	change_value = server.extract(modify_server_conflict1);
+	ASSERT_FALSE(change_value.empty());
+
+	change_value.value().size = modify_server_conflict1.size;
+	change_value.value().hash = modify_server_conflict1.hash;
+	server.insert(std::move(change_value));
 
 	monitor_client::diff_check::LocalDiffList local_diff_list = monitor_client::diff_check::MakeLocalDiffList(os, db);
-	ASSERT_EQ(local_diff_list.create_list.size(), 4);
 
-	auto iter = local_diff_list.create_list.begin();
-	ASSERT_EQ(iter->name, L"1_4/1_4_1/1_4_1_2.txt");
-	ASSERT_EQ(iter->size, 100);
-	ASSERT_EQ(iter->hash, L"new file");
-	++iter;
+	auto create_list = local_diff_list.create_list;
+	auto equal_list = local_diff_list.equal_list;
+	auto modify_list = local_diff_list.modify_list;
 
-	ASSERT_EQ(iter->name, L"1_5.txt");
-	ASSERT_EQ(iter->size, 0);
-	ASSERT_EQ(iter->hash, L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
-	++iter;
+	ItemInfoSort(create_list);
+	ItemInfoSort(equal_list);
+	DiffInfoSort(modify_list);
 
-	ASSERT_EQ(iter->name, L"1_6.txt");
-	ASSERT_EQ(iter->size, 0);
-	ASSERT_EQ(iter->hash, L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
-	++iter;
+	ASSERT_EQ(create_list.size(), 4);
 
-	ASSERT_EQ(iter->name, L"1_7");
-	ASSERT_EQ(iter->size, -1);
-	ASSERT_TRUE(iter->hash.empty());
+	ASSERT_EQ(create_list[0].name, new_same.name);
+	ASSERT_EQ(create_list[0].size, new_same.size);
+	ASSERT_EQ(create_list[0].hash, new_same.hash);
 
-	for (auto iter : local_diff_list.modify_list) {
-		if (iter.os_item.name == L"1_4/1_4_1/1_4_1_1.txt") {
-			std::wstring name = L"1_4/1_4_1/1_4_1_1.txt";
-			auto db_iter = db.find({ name });
-			ASSERT_TRUE(db.end() != db_iter);
-			ASSERT_EQ(iter.other_item.size, db_iter->size);
-			ASSERT_EQ(iter.other_item.hash, db_iter->hash);
+	ASSERT_EQ(create_list[1].name, new_file1.name);
+	ASSERT_EQ(create_list[1].size, new_file1.size);
+	ASSERT_EQ(create_list[1].hash, new_file1.hash);
 
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.os_item.size, os_iter->size);
-			ASSERT_EQ(iter.os_item.hash, os_iter->hash);
-		}
-		else if (iter.os_item.name == L"1_2/1_2_1/1_2_1_1.txt") {
-			std::wstring name = L"1_2/1_2_1/1_2_1_1.txt";
-			auto db_iter = db.find({ name });
-			ASSERT_TRUE(db.end() != db_iter);
-			ASSERT_EQ(iter.other_item.size, db_iter->size);
-			ASSERT_EQ(iter.other_item.hash, db_iter->hash);
+	ASSERT_EQ(create_list[2].name, new_file2.name);
+	ASSERT_EQ(create_list[2].size, new_file2.size);
+	ASSERT_EQ(create_list[2].hash, new_file2.hash);
 
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.os_item.size, os_iter->size);
-			ASSERT_EQ(iter.os_item.hash, os_iter->hash);
-		}
-		else {
-			ASSERT_TRUE(false);
-		}
-	}
+	ASSERT_EQ(create_list[3].name, new_local_conflict1.name);
+	ASSERT_EQ(create_list[3].size, new_local_conflict1.size);
+	ASSERT_EQ(create_list[3].hash, new_local_conflict1.hash);
 
-	ASSERT_EQ(local_diff_list.equal_list.size(), 9);
+	ASSERT_EQ(modify_list.size(), 3);
 
-	info.name = L"1_5.txt";
-	info.size = 10;
-	info.hash = L"already make";
-	server.insert(info);
+	ASSERT_EQ(modify_list[0].prev_hash, L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+	ASSERT_EQ(modify_list[0].os_item.name, modify_file1.name);
+	ASSERT_EQ(modify_list[0].os_item.size, modify_file1.size);
+	ASSERT_EQ(modify_list[0].os_item.hash, modify_file1.hash);
 
-	info.name = L"1_6.txt";
-	info.size = 0;
-	info.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-	server.insert(info);
+	ASSERT_EQ(modify_list[1].prev_hash, L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+	ASSERT_EQ(modify_list[1].os_item.name, modify_local_conflict1.name);
+	ASSERT_EQ(modify_list[1].os_item.size, modify_local_conflict1.size);
+	ASSERT_EQ(modify_list[1].os_item.hash, modify_local_conflict1.hash);
 
-	auto change_value3 = server.extract({ L"1_2/1_2_1/1_2_1_1.txt" });
-	ASSERT_FALSE(change_value3.empty());
+	ASSERT_EQ(modify_list[2].prev_hash, L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+	ASSERT_EQ(modify_list[2].os_item.name, modify_file2.name);
+	ASSERT_EQ(modify_list[2].os_item.size, modify_file2.size);
+	ASSERT_EQ(modify_list[2].os_item.hash, modify_file2.hash);
 
-	change_value3.value().size = 1000;
-	change_value3.value().hash = L"already modify";
-	server.insert(std::move(change_value3));
-
-	info.name = L"1_3/1_3_1/1_3_1_2.txt";
-	info.size = 10;
-	info.hash = L"new server file";
-	server.insert(info);
+	ASSERT_EQ(equal_list.size(), 8);
 
 	monitor_client::diff_check::ServerDiffList server_diff_list = monitor_client::diff_check::MakeServerDiffList(server, local_diff_list);
+	ASSERT_EQ(server_diff_list.upload_request_list.size(), 4);
+
+	ASSERT_EQ(server_diff_list.upload_request_list[0].name, modify_file1.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[0].size, modify_file1.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[0].hash, modify_file1.hash);
+
+	ASSERT_EQ(server_diff_list.upload_request_list[1].name, modify_file2.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[1].size, modify_file2.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[1].hash, modify_file2.hash);
+
+	ASSERT_EQ(server_diff_list.upload_request_list[2].name, new_file1.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[2].size, new_file1.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[2].hash, new_file1.hash);
+
+	ASSERT_EQ(server_diff_list.upload_request_list[3].name, new_file2.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[3].size, new_file2.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[3].hash, new_file2.hash);
+
+	ASSERT_EQ(server_diff_list.download_request_list.size(), 1);
+	ASSERT_EQ(server_diff_list.download_request_list[0], local_delete_file1);
+
 	ASSERT_EQ(server_diff_list.conflict_list.size(), 2);
+
+	std::sort(server_diff_list.conflict_list.begin(), server_diff_list.conflict_list.end());
+	ASSERT_EQ(server_diff_list.conflict_list[0], modify_server_conflict1.name);
+	ASSERT_EQ(server_diff_list.conflict_list[1], new_server_conflict1.name);
+
 	ASSERT_TRUE(server_diff_list.delete_list.empty());
-	
-	for (auto iter : server_diff_list.conflict_list) {
-		if (iter.other_item.name == L"1_5.txt") {
-			std::wstring name = L"1_5.txt";
-			auto server_iter = server.find({ name });
-			ASSERT_TRUE(server.end() != server_iter);
-			ASSERT_EQ(iter.other_item.size, server_iter->size);
-			ASSERT_EQ(iter.other_item.hash, server_iter->hash);
+}
 
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.os_item.size, os_iter->size);
-			ASSERT_EQ(iter.os_item.hash, os_iter->hash);
-		}
-		else if (iter.other_item.name == L"1_2/1_2_1/1_2_1_1.txt") {
-			std::wstring name = L"1_2/1_2_1/1_2_1_1.txt";
-			auto server_iter = server.find({ name });
-			ASSERT_TRUE(server.end() != server_iter);
-			ASSERT_EQ(iter.other_item.size, server_iter->size);
-			ASSERT_EQ(iter.other_item.hash, server_iter->hash);
+TEST_F(DiffTest, SortTest) {
+	monitor_client::common_utility::ItemList server = GetReferece();
+	monitor_client::common_utility::ItemList os = server;
+	monitor_client::common_utility::ItemList db = server;
 
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.os_item.size, os_iter->size);
-			ASSERT_EQ(iter.os_item.hash, os_iter->hash);
-		}
-		else {
-			ASSERT_TRUE(false);
-		}
-	}
+	std::wstring local_delete_file1 = L"1_1/1_1_1/1_1_1_1.txt";
+	os.erase({ local_delete_file1 });
+
+	std::wstring local_delete_file2 = L"1_1/1_1_1";
+	os.erase({ local_delete_file2 });
+
+	std::wstring local_delete_file3 = L"1_1";
+	os.erase({ local_delete_file3 });
+
+	monitor_client::common_utility::ItemInfo new_file1;
+	new_file1.name = L"1_5";
+	new_file1.size = -1;
+	new_file1.hash.clear();
+	os.insert(new_file1);
+
+	monitor_client::common_utility::ItemInfo new_file2;
+	new_file2.name = L"1_5/1_5_1";
+	new_file2.size = -1;
+	new_file2.hash.clear();
+	os.insert(new_file2);
+
+	monitor_client::common_utility::ItemInfo new_file3;
+	new_file3.name = L"1_5/1_5_1/1_5_1_1.txt";
+	new_file3.size = 0;
+	new_file3.hash = L"new file";
+	os.insert(new_file3);
+
+	monitor_client::diff_check::LocalDiffList local_diff_list = monitor_client::diff_check::MakeLocalDiffList(os, db);
+
+	auto create_list = local_diff_list.create_list;
+	auto equal_list = local_diff_list.equal_list;
+	auto modify_list = local_diff_list.modify_list;
+
+	ItemInfoSort(create_list);
+	ItemInfoSort(equal_list);
+	DiffInfoSort(modify_list);
+
+	ASSERT_EQ(create_list.size(), 3);
+
+	ASSERT_EQ(create_list[0].name, new_file1.name);
+	ASSERT_EQ(create_list[0].size, new_file1.size);
+	ASSERT_EQ(create_list[0].hash, new_file1.hash);
+
+	ASSERT_EQ(create_list[1].name, new_file2.name);
+	ASSERT_EQ(create_list[1].size, new_file2.size);
+	ASSERT_EQ(create_list[1].hash, new_file2.hash);
+
+	ASSERT_EQ(create_list[2].name, new_file3.name);
+	ASSERT_EQ(create_list[2].size, new_file3.size);
+	ASSERT_EQ(create_list[2].hash, new_file3.hash);
+
+	ASSERT_TRUE(modify_list.empty());
+
+	ASSERT_EQ(equal_list.size(), 9);
+
+	monitor_client::diff_check::ServerDiffList server_diff_list = monitor_client::diff_check::MakeServerDiffList(server, local_diff_list);
+	ASSERT_TRUE(server_diff_list.conflict_list.empty());
 
 	ASSERT_EQ(server_diff_list.upload_request_list.size(), 3);
 
-	for (auto iter : server_diff_list.upload_request_list) {
-		if (iter.name == L"1_7") {
-			std::wstring name = L"1_7";
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.size, os_iter->size);
-			ASSERT_EQ(iter.hash, os_iter->hash);
-		}
-		else if (iter.name == L"1_4/1_4_1/1_4_1_2.txt") {
-			std::wstring name = L"1_4/1_4_1/1_4_1_2.txt";
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.size, os_iter->size);
-			ASSERT_EQ(iter.hash, os_iter->hash);
-		}
-		else if (iter.name == L"1_4/1_4_1/1_4_1_1.txt") {
-			std::wstring name = L"1_4/1_4_1/1_4_1_1.txt";
-			auto os_iter = os.find({ name });
-			ASSERT_TRUE(os.end() != os_iter);
-			ASSERT_EQ(iter.size, os_iter->size);
-			ASSERT_EQ(iter.hash, os_iter->hash);
-		}
-		else {
-			ASSERT_TRUE(false);
-		}
-	}
+	ASSERT_EQ(server_diff_list.upload_request_list[0].name, new_file1.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[0].size, new_file1.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[0].hash, new_file1.hash);
 
-	ASSERT_EQ(server_diff_list.download_request_list.size(), 2);
+	ASSERT_EQ(server_diff_list.upload_request_list[1].name, new_file2.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[1].size, new_file2.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[1].hash, new_file2.hash);
 
-	for (auto iter : server_diff_list.download_request_list) {
-		if (iter != L"1_1/1_1_1/1_1_1_1.txt" && iter != L"1_3/1_3_1/1_3_1_2.txt") {
-			ASSERT_TRUE(false);
-		}
-	}
+	ASSERT_EQ(server_diff_list.upload_request_list[2].name, new_file3.name);
+	ASSERT_EQ(server_diff_list.upload_request_list[2].size, new_file3.size);
+	ASSERT_EQ(server_diff_list.upload_request_list[2].hash, new_file3.hash);
+
+	ASSERT_EQ(server_diff_list.download_request_list.size(), 3);
+	ASSERT_EQ(server_diff_list.download_request_list[0], local_delete_file3);
+	ASSERT_EQ(server_diff_list.download_request_list[1], local_delete_file2);
+	ASSERT_EQ(server_diff_list.download_request_list[2], local_delete_file1);
+
+	ASSERT_TRUE(server_diff_list.delete_list.empty());
 }
