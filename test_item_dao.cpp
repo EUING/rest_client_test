@@ -155,11 +155,11 @@ TEST_F(ItemDao, ChangeItemName) {
 	ASSERT_EQ(item_info.hash, L"hash");
 }
 
-TEST_F(ItemDao, DeleteItemInfo) {
+TEST_F(ItemDao, RemoveItemInfo) {
 	monitor_client::ItemDaoSqlite item_dao;
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
-	std::optional<int> num = item_dao.DeleteItemInfo(L"test.jpg", 2);
+	std::optional<int> num = item_dao.RemoveItemInfo(L"test.jpg", 2);
 	ASSERT_TRUE(num.has_value());
 	ASSERT_EQ(1, num.value());
 
@@ -189,7 +189,7 @@ TEST_F(ItemDao, DeleteItemInfo) {
 	}
 }
 
-TEST_F(ItemDao, InsertItemInfo) {
+TEST_F(ItemDao, UpdateItemInfo) {
 	monitor_client::ItemDaoSqlite item_dao;
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
@@ -198,7 +198,7 @@ TEST_F(ItemDao, InsertItemInfo) {
 	info.size = 1024;
 	info.hash = L"hash";
 
-	std::optional<int> num = item_dao.InsertItemInfo(info, 0);
+	std::optional<int> num = item_dao.UpdateItemInfo(info, 0);
 	ASSERT_TRUE(num.has_value());
 	ASSERT_EQ(1, num.value());
 

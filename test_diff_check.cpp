@@ -194,42 +194,42 @@ TEST_F(DiffTest, GetDbSubFolder) {
 	info.size = -1;
 	info.hash.clear();
 
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_2";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_3";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_4";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_1/1_1_1";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_2/1_2_1";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_3/1_3_1";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_4/1_4_1";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_1/1_1_1/1_1_1_1.txt";
 	info.size = 0;
 	info.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_2/1_2_1/1_2_1_1.txt";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_3/1_3_1/1_3_1_1.txt";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	info.name = L"1_4/1_4_1/1_4_1_1.txt";
-	local_db.InsertItem(info);
+	local_db.UpdateItem(info);
 
 	monitor_client::common_utility::ItemList item_list;
 	monitor_client::common_utility::GetSubFolderInfo(local_db, L"", item_list);
@@ -376,7 +376,7 @@ TEST_F(DiffTest, NoLocalChange) {
 	ASSERT_TRUE(server_diff_list.upload_request_list.empty());
 	ASSERT_TRUE(server_diff_list.download_request_list.empty());
 	ASSERT_TRUE(server_diff_list.conflict_list.empty());
-	ASSERT_TRUE(server_diff_list.delete_list.empty());
+	ASSERT_TRUE(server_diff_list.remove_list.empty());
 }
 
 TEST_F(DiffTest, LocalChangeNoConflict) {
@@ -484,8 +484,8 @@ TEST_F(DiffTest, LocalChangeNoConflict) {
 	ASSERT_EQ(server_diff_list.download_request_list.size(), 1);
 	ASSERT_EQ(server_diff_list.download_request_list[0], local_delete_file1);
 
-	ASSERT_EQ(server_diff_list.delete_list.size(), 1);
-	ASSERT_EQ(server_diff_list.delete_list[0], server_delete_file1);
+	ASSERT_EQ(server_diff_list.remove_list.size(), 1);
+	ASSERT_EQ(server_diff_list.remove_list[0], server_delete_file1);
 }
 TEST_F(DiffTest, LocalChangeConflict) {
 	monitor_client::common_utility::ItemList server = GetReferece();
@@ -648,7 +648,7 @@ TEST_F(DiffTest, LocalChangeConflict) {
 	ASSERT_EQ(server_diff_list.conflict_list[0], modify_server_conflict1.name);
 	ASSERT_EQ(server_diff_list.conflict_list[1], new_server_conflict1.name);
 
-	ASSERT_TRUE(server_diff_list.delete_list.empty());
+	ASSERT_TRUE(server_diff_list.remove_list.empty());
 }
 
 TEST_F(DiffTest, SortTest) {
@@ -733,5 +733,5 @@ TEST_F(DiffTest, SortTest) {
 	ASSERT_EQ(server_diff_list.download_request_list[1], local_delete_file2);
 	ASSERT_EQ(server_diff_list.download_request_list[2], local_delete_file1);
 
-	ASSERT_TRUE(server_diff_list.delete_list.empty());
+	ASSERT_TRUE(server_diff_list.remove_list.empty());
 }

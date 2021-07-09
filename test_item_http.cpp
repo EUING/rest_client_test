@@ -71,12 +71,12 @@ TEST_F(HttpTest, GetFolderContainList) {
 	ASSERT_TRUE(v[3].hash.empty());
 }
 
-TEST_F(HttpTest, InsertItem) {	
+TEST_F(HttpTest, UpdateItem) {	
 	monitor_client::common_utility::ItemInfo item_info;
 	item_info.name = L"새 텍스트 문서.txt";
 	item_info.size = 10;
 
-	bool result = item_http->InsertItem(item_info);
+	bool result = item_http->UpdateItem(item_info);
 	ASSERT_TRUE(result);
 }
 
@@ -85,7 +85,7 @@ TEST_F(HttpTest, ModifyItem) {
 	item_info.name = L"새 텍스트 문서.txt";
 	item_info.size = 10;
 
-	bool result = item_http->InsertItem(item_info);
+	bool result = item_http->UpdateItem(item_info);
 	ASSERT_TRUE(result);
 }
 

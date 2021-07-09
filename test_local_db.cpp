@@ -163,12 +163,12 @@ TEST_F(LocalDb, AddItem) {
 	item_info.size = 10;
 	item_info.hash = L"hash";
 
-	ASSERT_TRUE(sql.InsertItem(item_info));
+	ASSERT_TRUE(sql.UpdateItem(item_info));
 	item_info.name = L"image.bmp";
 	item_info.size = 10000;
 	item_info.hash = L"hash";
 
-	ASSERT_TRUE(sql.InsertItem(item_info));
+	ASSERT_TRUE(sql.UpdateItem(item_info));
 
 	std::optional<monitor_client::common_utility::ItemInfo> result = sql.GetItemInfo(L"image.bmp");
 	ASSERT_TRUE(result.has_value());
@@ -189,7 +189,7 @@ TEST_F(LocalDb, ModifyItem) {
 	item_info.size = 1234;
 	item_info.hash = L"hashhash";
 
-	ASSERT_TRUE(sql.InsertItem(item_info));
+	ASSERT_TRUE(sql.UpdateItem(item_info));
 
 	std::optional<monitor_client::common_utility::ItemInfo> result = sql.GetItemInfo(L"새 텍스트 파일.txt");
 	ASSERT_TRUE(result.has_value());
