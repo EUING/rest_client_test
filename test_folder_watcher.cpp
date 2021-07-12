@@ -8,16 +8,19 @@
 #include <string>
 
 #include "../monitor_client/folder_watcher.h"
-#include "../monitor_client/notify_queue.h"
+#include "../monitor_client/event_queue.h"
+#include "../monitor_client/upload_event.h"
+#include "../monitor_client/remove_event.h"
+#include "../monitor_client/rename_event.h"
 
 const wchar_t* const kTestPath = L"C:\\Users\\ABO\\Desktop";
 class FolderTest : public ::testing::Test {
 public:
 	monitor_client::FolderWatcher* watcher;
-	std::shared_ptr<monitor_client::NotifyQueue> notify_queue;
+	std::shared_ptr<monitor_client::EventQueue> event_queue;
 	void SetUp() override {
-		notify_queue = std::make_shared<monitor_client::NotifyQueue>();
-		watcher = new monitor_client::FolderWatcher(notify_queue, kTestPath);
+		event_queue = std::make_shared<monitor_client::EventQueue>();
+		watcher = new monitor_client::FolderWatcher(event_queue, kTestPath);
 	}
 
 	void TearDown() override {
@@ -133,18 +136,10 @@ TEST_F(FolderTest, CreateFolder) {
 	watcher->StopWatching();
 	RemoveDirectory(new_folder.c_str());
 
-	auto result = notify_queue->Front();
-	ASSERT_TRUE(result.has_value());
-	notify_queue->Pop();
-
-	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
-
-	monitor_client::common_utility::ChangeItemInfo info;
-	info.action = FILE_ACTION_ADDED;
-	info.relative_path = L"test";
-
-	ASSERT_EQ(result_info.action, info.action);
-	ASSERT_EQ(result_info.relative_path, info.relative_path);
+	ASSERT_NE(event_queue->Front(), nullptr);
+	monitor_client::BaseEvent* event = const_cast<monitor_client::BaseEvent*>(event_queue->Front().get());
+	ASSERT_NE(dynamic_cast<monitor_client::UploadEvent*>(event), nullptr);
+	event_queue->Pop();
 }
 
 TEST_F(FolderTest, DeleteFolder) {
@@ -157,18 +152,10 @@ TEST_F(FolderTest, DeleteFolder) {
 
 	watcher->StopWatching();
 
-	auto result = notify_queue->Front();
-	ASSERT_TRUE(result.has_value());
-	notify_queue->Pop();
-
-	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
-
-	monitor_client::common_utility::ChangeItemInfo info;
-	info.action = FILE_ACTION_REMOVED;
-	info.relative_path = L"test";
-
-	ASSERT_EQ(result_info.action, info.action);
-	ASSERT_EQ(result_info.relative_path, info.relative_path);
+	ASSERT_NE(event_queue->Front(), nullptr);
+	monitor_client::BaseEvent* event = const_cast<monitor_client::BaseEvent*>(event_queue->Front().get());
+	ASSERT_NE(dynamic_cast<monitor_client::RemoveEvent*>(event), nullptr);
+	event_queue->Pop();
 }
 
 TEST_F(FolderTest, ChangeName) {
@@ -182,18 +169,10 @@ TEST_F(FolderTest, ChangeName) {
 
 	watcher->StopWatching();
 
-	auto result = notify_queue->Front();
-	ASSERT_TRUE(result.has_value());
-	notify_queue->Pop();
-
-	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
-
-	monitor_client::common_utility::ChangeItemInfo info;
-	info.action = FILE_ACTION_RENAMED_NEW_NAME;
-	info.relative_path = L"old?new";
-
-	ASSERT_EQ(result_info.action, info.action);
-	ASSERT_EQ(result_info.relative_path, info.relative_path);
+	ASSERT_NE(event_queue->Front(), nullptr);
+	monitor_client::BaseEvent* event = const_cast<monitor_client::BaseEvent*>(event_queue->Front().get());
+	ASSERT_NE(dynamic_cast<monitor_client::RenameEvent*>(event), nullptr);
+	event_queue->Pop();
 
 	_wrmdir(new_folder.c_str());
 }
@@ -207,18 +186,10 @@ TEST_F(FolderTest, CreateText) {
 	
 	watcher->StopWatching();
 
-	auto result = notify_queue->Front();
-	ASSERT_TRUE(result.has_value());
-	notify_queue->Pop();
-
-	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
-
-	monitor_client::common_utility::ChangeItemInfo info;
-	info.action = FILE_ACTION_ADDED;
-	info.relative_path = L"test.txt";
-
-	ASSERT_EQ(result_info.action, info.action);
-	ASSERT_EQ(result_info.relative_path, info.relative_path);
+	ASSERT_NE(event_queue->Front(), nullptr);
+	monitor_client::BaseEvent* event = const_cast<monitor_client::BaseEvent*>(event_queue->Front().get());
+	ASSERT_NE(dynamic_cast<monitor_client::UploadEvent*>(event), nullptr);
+	event_queue->Pop();
 	
 	_wremove(file_name.c_str());
 }
@@ -233,18 +204,10 @@ TEST_F(FolderTest, ModifyText) {
 	std::ofstream file{ file_name };
 	file.close();
 
-	auto result = notify_queue->Front();
-	ASSERT_TRUE(result.has_value());
-	notify_queue->Pop();
-
-	monitor_client::common_utility::ChangeItemInfo result_info = result.value();
-
-	monitor_client::common_utility::ChangeItemInfo info;
-	info.action = FILE_ACTION_MODIFIED;
-	info.relative_path = L"test.txt";
-
-	ASSERT_EQ(result_info.action, info.action);
-	ASSERT_EQ(result_info.relative_path, info.relative_path);
+	ASSERT_NE(event_queue->Front(), nullptr);
+	monitor_client::BaseEvent* event = const_cast<monitor_client::BaseEvent*>(event_queue->Front().get());
+	ASSERT_NE(dynamic_cast<monitor_client::UploadEvent*>(event), nullptr);
+	event_queue->Pop();
 
 	_wremove(file_name.c_str());
 }
