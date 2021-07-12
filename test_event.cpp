@@ -119,7 +119,7 @@ TEST_F(EventTest, Upload) {
 	info.hash = L"hash";
 
 	monitor_client::UploadEvent event(info);
-	ASSERT_TRUE(event(*item_request));
+	ASSERT_TRUE(event.Execute(*item_request));
 }
 
 TEST_F(EventTest, Download) {
@@ -130,7 +130,7 @@ TEST_F(EventTest, Download) {
 	std::wstring file_name = L"1_1/1_1_1/1_1_1_1.txt";
 
 	monitor_client::DownloadEvent event(file_name);
-	ASSERT_TRUE(event(*item_request));
+	ASSERT_TRUE(event.Execute(*item_request));
 }
 
 TEST_F(EventTest, Conflict) {
@@ -141,7 +141,7 @@ TEST_F(EventTest, Conflict) {
 	std::wstring file_name = L"1_1/1_1_1/1_1_1_1.txt";
 
 	monitor_client::ConflictEvent event(file_name);
-	ASSERT_TRUE(event(*item_request));
+	ASSERT_TRUE(event.Execute(*item_request));
 	
 	std::wstring conflict_name = L"1_1/1_1_1/1_1_1_1.txt.conflict";
 	std::optional<bool> is_dir = monitor_client::common_utility::IsDirectory(conflict_name);
@@ -157,7 +157,7 @@ TEST_F(EventTest, Remove) {
 	std::wstring file_name = L"1_1/1_1_1/1_1_1_1.txt";
 
 	monitor_client::RemoveEvent event(file_name);
-	ASSERT_TRUE(event(*item_request));
+	ASSERT_TRUE(event.Execute(*item_request));
 }
 
 TEST_F(EventTest, LocalRemove) {
@@ -168,7 +168,7 @@ TEST_F(EventTest, LocalRemove) {
 	std::wstring file_name = L"1_1/1_1_1";
 
 	monitor_client::LocalRemoveEvent event(file_name);
-	ASSERT_TRUE(event(*item_request));
+	ASSERT_TRUE(event.Execute(*item_request));
 
 	std::optional<bool> is_dir = monitor_client::common_utility::IsDirectory(L"1_1/1_1_1/1_1_1_1.txt");
 	ASSERT_FALSE(is_dir.has_value());
@@ -189,5 +189,5 @@ TEST_F(EventTest, Rename) {
 	info.new_name = L"1_1/1_1_1/1_1_1_1.jpg";
 
 	monitor_client::RenameEvent event(info);
-	ASSERT_TRUE(event(*item_request));
+	ASSERT_TRUE(event.Execute(*item_request));
 }
