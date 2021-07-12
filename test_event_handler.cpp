@@ -3,12 +3,13 @@
 #include <Windows.h>
 #include <stdint.h>
 
+#include <memory>
 #include <fstream>
 #include <string>
 
 #include "../monitor_client/event_handler.h"
 
-class EventTest : public ::testing::Test {
+class EventHandlerTest : public ::testing::Test {
 public:
 	monitor_client::EventHandler* handler;
 	std::shared_ptr<monitor_client::NotifyQueue> notify_queue;
@@ -62,7 +63,7 @@ public:
 		delete handler;
 	}
 
-	void MakeNotify(uint8_t* buffer, const monitor_client::common_utility::ChangeItemInfo& change_item_info) {
+	void MakeNotify(std::shared_ptr<uint8_t[]> buffer, const monitor_client::common_utility::ChangeItemInfo& change_item_info) {
 		FILE_NOTIFY_INFORMATION* fni = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(&buffer[0]);
 
 		fni->Action = change_item_info.action;
@@ -71,7 +72,7 @@ public:
 		fni->NextEntryOffset = 0;
 	}
 
-	void MakeChangeNameNotify(uint8_t* buffer, const monitor_client::common_utility::ChangeNameInfo& change_name_info) {
+	void MakeChangeNameNotify(std::shared_ptr<uint8_t[]> buffer, const monitor_client::common_utility::ChangeNameInfo& change_name_info) {
 		FILE_NOTIFY_INFORMATION* fni = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(&buffer[0]);
 		
 		fni->Action = FILE_ACTION_RENAMED_OLD_NAME;
@@ -88,9 +89,9 @@ public:
 	}
 };
 
-TEST_F(EventTest, FileAdd) {
-	uint8_t* buffer = new uint8_t[1024 * 1024];
-	memset(buffer, 0, 1024 * 1024);
+TEST_F(EventHandlerTest, FileAdd) {
+	std::shared_ptr<uint8_t[]> buffer(new uint8_t[1024 * 1024], std::default_delete<uint8_t[]>());
+	memset(buffer.get(), 0, 1024 * 1024);
 
 	std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\1\\1_1\\1_1_1\\1_1_1_1.txt";
 
@@ -107,13 +108,11 @@ TEST_F(EventTest, FileAdd) {
 	ASSERT_TRUE(result.has_value());
 	ASSERT_EQ(reference.action, result.value().action);
 	ASSERT_EQ(reference.relative_path, result.value().relative_path);
-	
-	delete[] buffer;
 }
 
-TEST_F(EventTest, FolderAdd) {
-	uint8_t* buffer = new uint8_t[1024 * 1024];
-	memset(buffer, 0, 1024 * 1024);
+TEST_F(EventHandlerTest, FolderAdd) {
+	std::shared_ptr<uint8_t[]> buffer(new uint8_t[1024 * 1024], std::default_delete<uint8_t[]>());
+	memset(buffer.get(), 0, 1024 * 1024);
 
 	monitor_client::common_utility::ChangeItemInfo reference;
 	reference.action = FILE_ACTION_ADDED;
@@ -142,13 +141,11 @@ TEST_F(EventTest, FolderAdd) {
 	for (int i = 0; i < v.size(); ++i) {
 		ASSERT_EQ(v[i], v2[i]);
 	}
-
-	delete[] buffer;
 }
 
-TEST_F(EventTest, ItemNewName) {
-	uint8_t* buffer = new uint8_t[1024 * 1024];
-	memset(buffer, 0, 1024 * 1024);
+TEST_F(EventHandlerTest, ItemNewName) {
+	std::shared_ptr<uint8_t[]> buffer(new uint8_t[1024 * 1024], std::default_delete<uint8_t[]>());
+	memset(buffer.get(), 0, 1024 * 1024);
 
 	std::wstring old_name = L"C:\\Users\\ABO\\Desktop\\1\\1_3\\1_3_1";
 	std::wstring new_name = L"C:\\Users\\ABO\\Desktop\\1\\1_3\\1_3_2";
@@ -170,13 +167,10 @@ TEST_F(EventTest, ItemNewName) {
 	ASSERT_TRUE(result.has_value());
 	ASSERT_EQ(reference.action, result.value().action);
 	ASSERT_EQ(reference.relative_path, result.value().relative_path);
-
-	delete[] buffer;
 }
 
-TEST_F(EventTest, Modify) {
-	uint8_t* buffer = new uint8_t[1024 * 1024];
-	memset(buffer, 0, 1024 * 1024);
+TEST_F(EventHandlerTest, Modify) {
+	std::shared_ptr<uint8_t[]> buffer(new uint8_t[1024 * 1024], std::default_delete<uint8_t[]>());
 
 	monitor_client::common_utility::ChangeItemInfo change_item_info;
 	change_item_info.action = FILE_ACTION_MODIFIED;
@@ -198,6 +192,4 @@ TEST_F(EventTest, Modify) {
 	ASSERT_TRUE(result.has_value());
 	ASSERT_EQ(FILE_ACTION_MODIFIED, result.value().action);
 	ASSERT_EQ(L"C:\\Users\\ABO\\Desktop\\1\\1_1\\1_1_1\\1_1_1_1.txt", result.value().relative_path);
-
-	delete[] buffer;
 }

@@ -29,7 +29,7 @@ public:
 	}
 
 	void TearDown() override {
-		std::unique_ptr<sqlite_manager::utf16::SqliteWrapper> sqlite_wrapper = sqlite_manager::utf16::SqliteWrapper::Create(L"C:\\Users\\ABO\\Desktop\\»õ Æú´õ\\test_items.db");
+		std::unique_ptr<sqlite_manager::utf16::SqliteWrapper> sqlite_wrapper = sqlite_manager::utf16::SqliteWrapper::Create(kTestDb);
 
 		sqlite_wrapper->ExecuteUpdate(L"DROP TABLE items");
 	}
