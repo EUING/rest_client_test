@@ -7,21 +7,17 @@
 #include <memory>
 #include <string>
 
-#include "../monitor_client/event_producer.h"
+#include "../monitor_client/window_event_pusher.h"
 #include "../monitor_client/event_queue.h"
 #include "../monitor_client/common_utility.h"
 #include "../monitor_client/common_struct.h"
 #include "../monitor_client/item_dao.h"
-#include "../monitor_client/common_struct.h"
 #include "../monitor_client/base_event.h"
 #include "../monitor_client/upload_event.h"
-#include "../monitor_client/download_event.h"
-#include "../monitor_client/conflict_event.h"
 #include "../monitor_client/remove_event.h"
-#include "../monitor_client/local_remove_event.h"
 #include "../monitor_client/rename_event.h"
 
-class EventProducerTest : public ::testing::Test {
+class WindowEventPusherTest : public ::testing::Test {
 public:
 	monitor_client::ItemRequest* item_request;
 	std::shared_ptr<monitor_client::EventQueue> event_queue;
@@ -108,7 +104,7 @@ public:
 	}
 };
 
-TEST_F(EventProducerTest, PushWindowEvent) {
+TEST_F(WindowEventPusherTest, PushEvent) {
 	std::wstring target_folder = L"C:\\Users\\ABO\\Desktop\\1";
 	ASSERT_TRUE(SetCurrentDirectory(target_folder.c_str()));
 
@@ -146,8 +142,8 @@ TEST_F(EventProducerTest, PushWindowEvent) {
 	info.relative_path = L"1_1/1_1_1/1_1_1_1.txt";
 	MakeNotify(pos, info, true);
 	
-	monitor_client::EventProducer event_producer(event_queue);
-	event_producer.PushEvent(buffer);
+	monitor_client::WindowEventPusher event_pusher(buffer);
+	event_pusher.PushEvent(event_queue);
 
 	monitor_client::BaseEvent* event = const_cast<monitor_client::BaseEvent*>(event_queue->Front().get());
 	ASSERT_NE(dynamic_cast<monitor_client::UploadEvent*>(event), nullptr);
@@ -170,6 +166,7 @@ TEST_F(EventProducerTest, PushWindowEvent) {
 	event_queue->Pop();
 }
 
+/*
 TEST_F(EventProducerTest, PushCustomEvent) {
 	std::wstring target_folder = L"C:\\Users\\ABO\\Desktop\\1";
 	ASSERT_TRUE(SetCurrentDirectory(target_folder.c_str()));
@@ -227,3 +224,4 @@ TEST_F(EventProducerTest, PushCustomEvent) {
 	ASSERT_NE(dynamic_cast<monitor_client::ConflictEvent*>(event), nullptr);
 	event_queue->Pop();
 }
+*/
