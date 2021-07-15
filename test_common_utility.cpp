@@ -47,25 +47,6 @@ TEST(UtilityTest, GetItemInfo) {
 	ASSERT_FALSE(result.has_value());
 }
 
-TEST(UtilityTest, SplitName) {
-	std::wstring file_name;
-
-	std::optional<monitor_client::common_utility::ChangeNameInfo> result = monitor_client::common_utility::SplitChangeName(file_name);
-	ASSERT_FALSE(result.has_value());
-
-	file_name = L"test1?test2?test3";
-	result = monitor_client::common_utility::SplitChangeName(file_name);
-	ASSERT_FALSE(result.has_value());
-
-	file_name = L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019.lnk?C:\\Users\\ABO\\Desktop\\새 텍스트 문서.txt";
-	result = monitor_client::common_utility::SplitChangeName(file_name);
-	ASSERT_TRUE(result.has_value());
-
-	auto info = result.value();
-	ASSERT_EQ(info.old_name, L"C:\\Users\\ABO\\Desktop\\Visual Studio 2019.lnk");
-	ASSERT_EQ(info.new_name, L"C:\\Users\\ABO\\Desktop\\새 텍스트 문서.txt");
-}
-
 TEST(UtilityTest, FormatName) {
 	std::wstring str = monitor_client::common_utility::format_wstring(L"name=%s, id=%d", L"테스트", 3);
 	ASSERT_EQ(str, L"name=테스트, id=3");
