@@ -17,14 +17,19 @@ const wchar_t* const kTestPath = L"C:\\Users\\ABO\\Desktop";
 class FolderTest : public ::testing::Test {
 public:
 	monitor_client::FolderWatcher* watcher;
+	monitor_client::EventProducer* event_producer;
 	std::shared_ptr<monitor_client::EventQueue> event_queue;
+	
 	void SetUp() override {
 		event_queue = std::make_shared<monitor_client::EventQueue>();
-		watcher = new monitor_client::FolderWatcher(event_queue, kTestPath);
+		
+		event_producer = new monitor_client::EventProducer(event_queue);
+		watcher = new monitor_client::FolderWatcher(*event_producer, kTestPath);
 	}
 
 	void TearDown() override {
 		delete watcher;
+		delete event_producer;
 	}
 };
 
@@ -35,21 +40,6 @@ TEST_F(FolderTest, WrongPath) {
 	bool result = watcher->StartWatching();		
 
 	ASSERT_FALSE(result);
-}
-
-TEST_F(FolderTest, NullCheck) {
-	std::wstring wrong_path = L"WRONG PATH";
-	std::wstring path = L"C:\\Users\\ABO\\Desktop";
-	delete watcher;
-	watcher = new monitor_client::FolderWatcher(nullptr, wrong_path);
-
-	bool result = watcher->StartWatching();
-
-	ASSERT_FALSE(result);
-	watcher->SetWatchFolder(path);
-	result = watcher->StartWatching();
-
-	ASSERT_TRUE(result);
 }
 
 TEST_F(FolderTest, NoStartAndNoStop) {
