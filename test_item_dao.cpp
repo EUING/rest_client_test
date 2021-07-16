@@ -54,7 +54,8 @@ TEST_F(ItemDao, GetItemInfo) {
 	ASSERT_TRUE(item_dao.OpenDatabase(kTestDb));
 
 	std::optional<monitor_client::common_utility::ItemInfo> result = item_dao.GetItemInfo(L"새 텍스트 파일.txt", -1);
-	ASSERT_FALSE(result.has_value());
+	ASSERT_TRUE(result.has_value());
+	ASSERT_TRUE(result.value().name.empty());
 
 	result = item_dao.GetItemInfo(L"새 텍스트 파일.txt", 0);
 	ASSERT_TRUE(result.has_value());
@@ -143,7 +144,8 @@ TEST_F(ItemDao, ChangeItemName) {
 	ASSERT_EQ(1, result.value());
 
 	std::optional<monitor_client::common_utility::ItemInfo> get = item_dao.GetItemInfo(L"새 텍스트 파일.txt", 2);
-	ASSERT_FALSE(get.has_value());
+	ASSERT_TRUE(get.has_value());
+	ASSERT_TRUE(get.value().name.empty());
 
 	get = item_dao.GetItemInfo(L"change.txt", 2);
 	ASSERT_TRUE(get.has_value());

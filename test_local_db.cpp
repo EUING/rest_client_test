@@ -45,7 +45,8 @@ TEST_F(LocalDb, GetParentId) {
 	ASSERT_EQ(0, result.value());
 
 	result = sql.GetParentId(L"없는 폴더/없는 파일");
-	ASSERT_FALSE(result.has_value());
+	ASSERT_TRUE(result.has_value());
+	ASSERT_EQ(result.value(), -1);
 	
 	result = sql.GetParentId(L"새 폴더/test.jpg");
 	ASSERT_TRUE(result.has_value());
@@ -62,7 +63,8 @@ TEST_F(LocalDb, GetItemInfo) {
 	auto item_info = result.value();
 
 	result = sql.GetItemInfo(L"없음.txt");
-	ASSERT_FALSE(result.has_value());
+	ASSERT_TRUE(result.has_value());
+	ASSERT_TRUE(result.value().name.empty());
 
 	ASSERT_EQ(item_info.name, L"새 폴더");
 	ASSERT_EQ(item_info.size, -1);
@@ -227,13 +229,15 @@ TEST_F(LocalDb, RemoveItem) {
 	ASSERT_TRUE(sql.RemoveItem(L"새 폴더/새 폴더"));
 
 	std::optional<monitor_client::common_utility::ItemInfo> result = sql.GetItemInfo(L"새 폴더/새 폴더");
-	ASSERT_FALSE(result.has_value());
+	ASSERT_TRUE(result.has_value());
 
 	ASSERT_TRUE(sql.RemoveItem(L"새 폴더"));
 
 	result = sql.GetItemInfo(L"새 폴더/test.jpg");
-	ASSERT_FALSE(result.has_value());
+	ASSERT_TRUE(result.has_value());
+	ASSERT_TRUE(result.value().name.empty());
 
 	result = sql.GetItemInfo(L"새 폴더/새 텍스트 파일.txt");
-	ASSERT_FALSE(result.has_value());
+	ASSERT_TRUE(result.has_value());
+	ASSERT_TRUE(result.value().name.empty());
 }

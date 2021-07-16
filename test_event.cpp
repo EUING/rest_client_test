@@ -176,8 +176,8 @@ TEST_F(EventTest, LocalRemove) {
 	is_dir = monitor_client::common_utility::IsDirectory(L"1_1/1_1_1");
 	ASSERT_FALSE(is_dir.has_value());
 
-	ASSERT_FALSE(item_request->LocalRemoveRequest(L"1_1/1_1_1/1_1_1_1.txt"));
-	ASSERT_FALSE(item_request->LocalRemoveRequest(L"1_1/1_1_1"));
+	ASSERT_TRUE(item_request->LocalRemoveRequest(L"1_1/1_1_1/1_1_1_1.txt"));
+	ASSERT_TRUE(item_request->LocalRemoveRequest(L"1_1/1_1_1"));
 }
 
 TEST_F(EventTest, Rename) {
