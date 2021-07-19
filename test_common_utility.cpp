@@ -3,6 +3,8 @@
 #include <fstream>
 #include <optional>
 #include <string>
+#include <future>
+#include <chrono>
 
 #include "../monitor_client/common_utility.h"
 
@@ -119,6 +121,28 @@ TEST(UtilityTest, Sha256) {
 	result = monitor_client::common_utility::GetSha256(file_name);
 	ASSERT_TRUE(result.has_value());
 	ASSERT_EQ(L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", result.value());
+
+	_wremove(file_name.c_str());
+}
+
+TEST(UtilityTest, WaitTimeForAccess) {
+	std::wstring file_name = L"C:\\Users\\ABO\\Desktop\\empty.txt";
+	std::ofstream temp{ file_name };
+	
+	ASSERT_FALSE(monitor_client::common_utility::WaitTimeForAccess(file_name));
+	temp.close();
+	ASSERT_TRUE(monitor_client::common_utility::WaitTimeForAccess(file_name));
+
+	ASSERT_FALSE(monitor_client::common_utility::WaitTimeForAccess(L"Wrong"));
+
+	std::ofstream temp2{ file_name };
+	auto future = std::async(std::launch::async, [&temp2]() {
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		temp2.close();
+	});
+
+	ASSERT_EQ(std::future_status::timeout, future.wait_for(std::chrono::milliseconds(0)));
+	ASSERT_TRUE(monitor_client::common_utility::WaitTimeForAccess(file_name));
 
 	_wremove(file_name.c_str());
 }
