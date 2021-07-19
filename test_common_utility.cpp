@@ -144,5 +144,7 @@ TEST(UtilityTest, WaitTimeForAccess) {
 	ASSERT_EQ(std::future_status::timeout, future.wait_for(std::chrono::milliseconds(0)));
 	ASSERT_TRUE(monitor_client::common_utility::WaitTimeForAccess(file_name));
 
+	ASSERT_TRUE(monitor_client::common_utility::WaitTimeForAccess(L"C:\\Users\\ABO\\Desktop\\repos"));
+
 	_wremove(file_name.c_str());
 }
