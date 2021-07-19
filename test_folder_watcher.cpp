@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 
+#include "../monitor_client/event_filter_dummy.h"
 #include "../monitor_client/folder_watcher.h"
 #include "../monitor_client/event_queue.h"
 #include "../monitor_client/upload_event.h"
@@ -19,11 +20,13 @@ public:
 	monitor_client::FolderWatcher* watcher;
 	monitor_client::EventProducer* event_producer;
 	std::shared_ptr<monitor_client::EventQueue> event_queue;
-	
+	std::shared_ptr<monitor_client::EventFilterDummy> event_filter_dummy;
+
 	void SetUp() override {
 		event_queue = std::make_shared<monitor_client::EventQueue>();
-		
-		event_producer = new monitor_client::EventProducer(event_queue);
+		event_filter_dummy = std::make_shared<monitor_client::EventFilterDummy>();
+
+		event_producer = new monitor_client::EventProducer(event_filter_dummy, event_queue);
 		watcher = new monitor_client::FolderWatcher(*event_producer, kTestPath);
 	}
 

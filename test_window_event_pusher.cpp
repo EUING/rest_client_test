@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 
+#include "../monitor_client/event_filter_dummy.h"
 #include "../monitor_client/window_event_pusher.h"
 #include "../monitor_client/event_queue.h"
 #include "../monitor_client/common_utility.h"
@@ -143,7 +144,8 @@ TEST_F(WindowEventPusherTest, PushEvent) {
 	MakeNotify(pos, info, true);
 	
 	monitor_client::WindowEventPusher event_pusher(buffer);
-	event_pusher.PushEvent(event_queue);
+	std::shared_ptr<monitor_client::EventFilterDummy> event_filter_dummy = std::make_shared<monitor_client::EventFilterDummy>();
+	event_pusher.PushEvent(event_filter_dummy, event_queue);
 
 	monitor_client::BaseEvent* event = const_cast<monitor_client::BaseEvent*>(event_queue->Front().get());
 	ASSERT_NE(dynamic_cast<monitor_client::UploadEvent*>(event), nullptr);
