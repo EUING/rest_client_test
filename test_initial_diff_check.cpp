@@ -88,7 +88,7 @@ TEST_F(InitialDiffCheckTest, NoConflict) {
 	network_info.host = L"localhost";
 	network_info.port = 8080;
 
-	monitor_client::LocalDb local_db(std::move(item_dao));
+	std::shared_ptr<monitor_client::LocalDb> local_db = std::make_shared<monitor_client::LocalDb>(std::move(item_dao));
 	std::shared_ptr<monitor_client::ItemHttp> item_http = std::make_shared<monitor_client::ItemHttp>(network_info);
 
 	monitor_client::diff_check::ServerDiffList server_diff_list = monitor_client::diff_check::InitialDiffCheck(local_db, item_http);
@@ -156,7 +156,7 @@ TEST_F(InitialDiffCheckTest, UploadAndDownload) {
 	network_info.host = L"localhost";
 	network_info.port = 8080;
 
-	monitor_client::LocalDb local_db(std::move(item_dao));
+	std::shared_ptr<monitor_client::LocalDb> local_db = std::make_shared<monitor_client::LocalDb>(std::move(item_dao));
 	std::shared_ptr<monitor_client::ItemHttp> item_http = std::make_shared<monitor_client::ItemHttp>(network_info);
 
 	monitor_client::diff_check::ServerDiffList server_diff_list = monitor_client::diff_check::InitialDiffCheck(local_db, item_http);
@@ -239,7 +239,7 @@ TEST_F(InitialDiffCheckTest, Conflict) {
 	network_info.host = L"localhost";
 	network_info.port = 8080;
 
-	monitor_client::LocalDb local_db(std::move(item_dao));
+	std::shared_ptr<monitor_client::LocalDb> local_db = std::make_shared<monitor_client::LocalDb>(std::move(item_dao));
 	std::shared_ptr<monitor_client::ItemHttp> item_http = std::make_shared<monitor_client::ItemHttp>(network_info);
 
 	monitor_client::diff_check::ServerDiffList server_diff_list = monitor_client::diff_check::InitialDiffCheck(local_db, item_http);

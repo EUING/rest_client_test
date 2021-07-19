@@ -31,7 +31,9 @@ public:
 		item_info.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
 		item_dao->UpdateItemInfo(item_info, 1);
-		filter = new monitor_client::EventFilter(std::move(item_dao));
+
+		std::shared_ptr<monitor_client::LocalDb> local_db = std::make_shared<monitor_client::LocalDb>(std::move(item_dao));
+		filter = new monitor_client::EventFilter(local_db);
 
 		std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\»õ Æú´õ (2)";
 		_wmkdir(file_path.c_str());
