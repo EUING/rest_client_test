@@ -9,10 +9,8 @@
 
 #include "../monitor_client/event_filter_dummy.h"
 #include "../monitor_client/window_event_pusher.h"
-#include "../monitor_client/event_queue.h"
 #include "../monitor_client/common_utility.h"
 #include "../monitor_client/common_struct.h"
-#include "../monitor_client/item_dao.h"
 #include "../monitor_client/base_event.h"
 #include "../monitor_client/upload_event.h"
 #include "../monitor_client/remove_event.h"
@@ -20,7 +18,6 @@
 
 class WindowEventPusherTest : public ::testing::Test {
 public:
-	monitor_client::ItemRequest* item_request;
 	std::shared_ptr<monitor_client::EventQueue> event_queue;
 	PROCESS_INFORMATION process_info;
 
@@ -66,8 +63,6 @@ public:
 		temp.close();
 
 		event_queue = std::make_shared<monitor_client::EventQueue>();
-		monitor_client::common_utility::NetworkInfo network_info{ L"localhost", 8080 };
-		item_request = new monitor_client::ItemRequest(network_info, std::make_unique<monitor_client::ItemDaoDummy>());
 
 		memset(&process_info, 0, sizeof(process_info));
 
@@ -89,7 +84,6 @@ public:
 		CloseHandle(process_info.hThread);
 
 		_wsystem(L"rmdir /s /q C:\\Users\\ABO\\Desktop\\1");
-		delete item_request;
 	}
 
 	int MakeNotify(uint8_t* buffer, const monitor_client::common_utility::ChangeItemInfo& change_item_info, bool is_last) {

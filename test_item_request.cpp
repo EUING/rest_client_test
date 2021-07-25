@@ -35,7 +35,11 @@ public:
 		auto item_dao = std::make_unique<monitor_client::ItemDaoSqlite>();
 		item_dao->OpenDatabase(kTestDb);
 
-		item_request = new monitor_client::ItemRequest({ L"localhost", 8080 }, std::move(item_dao));
+		monitor_client::common_utility::NetworkInfo network_info{ L"localhost", 8080 };
+		std::shared_ptr<monitor_client::ItemHttp> item_http = std::make_shared<monitor_client::ItemHttp>(network_info);
+		std::shared_ptr<monitor_client::LocalDb> local_db = std::make_shared<monitor_client::LocalDb>(std::move(item_dao));
+
+		item_request = new monitor_client::ItemRequest(item_http, nullptr, local_db);
 
 		memset(&process_info, 0, sizeof(process_info));
 

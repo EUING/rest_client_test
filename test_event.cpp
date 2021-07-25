@@ -27,7 +27,6 @@ public:
 	void SetUp() override {
 		auto manager_db = std::make_unique<monitor_client::ItemDaoSqlite>();
 		manager_db->OpenDatabase(L":memory:");
-		monitor_client::common_utility::NetworkInfo network_info{ L"localhost", 8080 };
 
 		monitor_client::common_utility::ItemInfo info;
 		info.name = L"1_1";
@@ -45,7 +44,11 @@ public:
 		info.hash = L"hash";
 		manager_db->UpdateItemInfo(info, 2);
 
-		item_request = new monitor_client::ItemRequest(network_info, std::move(manager_db));
+		monitor_client::common_utility::NetworkInfo network_info{ L"localhost", 8080 };
+		std::shared_ptr<monitor_client::ItemHttp> item_http = std::make_shared<monitor_client::ItemHttp>(network_info);
+		std::shared_ptr<monitor_client::LocalDb> local_db = std::make_shared<monitor_client::LocalDb>(std::move(manager_db));
+
+		item_request = new monitor_client::ItemRequest(item_http, nullptr, local_db);
 		std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\1";
 		_wmkdir(file_path.c_str());
 

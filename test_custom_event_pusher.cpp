@@ -9,10 +9,8 @@
 
 #include "../monitor_client/event_filter_dummy.h"
 #include "../monitor_client/custom_event_pusher.h"
-#include "../monitor_client/event_queue.h"
 #include "../monitor_client/common_utility.h"
 #include "../monitor_client/common_struct.h"
-#include "../monitor_client/item_dao.h"
 #include "../monitor_client/base_event.h"
 #include "../monitor_client/upload_event.h"
 #include "../monitor_client/download_event.h"
@@ -21,7 +19,6 @@
 
 class CustomEventPusherTest : public ::testing::Test {
 public:
-	monitor_client::ItemRequest* item_request;
 	std::shared_ptr<monitor_client::EventQueue> event_queue;
 	PROCESS_INFORMATION process_info;
 
@@ -67,8 +64,6 @@ public:
 		temp.close();
 
 		event_queue = std::make_shared<monitor_client::EventQueue>();
-		monitor_client::common_utility::NetworkInfo network_info{ L"localhost", 8080 };
-		item_request = new monitor_client::ItemRequest(network_info, std::make_unique<monitor_client::ItemDaoDummy>());
 
 		memset(&process_info, 0, sizeof(process_info));
 
@@ -90,7 +85,6 @@ public:
 		CloseHandle(process_info.hThread);
 
 		_wsystem(L"rmdir /s /q C:\\Users\\ABO\\Desktop\\1");
-		delete item_request;
 	}
 };
 
@@ -118,7 +112,6 @@ TEST_F(CustomEventPusherTest, PushEvent) {
 
 	list.conflict_list.push_back(L"1_3/1_3_1/1_3_1_1.txt");
 	list.conflict_list.push_back(L"1_4/1_4_1/1_4_1_1.txt");
-
 
 	monitor_client::CustomEventPusher event_producer(list);
 	std::shared_ptr<monitor_client::EventFilterDummy> event_filter_dummy = std::make_shared<monitor_client::EventFilterDummy>();
