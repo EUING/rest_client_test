@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <Windows.h>
+
 #include <memory>
 
 #include "../monitor_client/common_struct.h"

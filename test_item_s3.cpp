@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <Windows.h>
+
 #include <fstream>
 
 #include "../monitor_client/item_s3.h"

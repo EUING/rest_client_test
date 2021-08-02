@@ -16,6 +16,11 @@
 #include "../monitor_client/remove_event.h"
 #include "../monitor_client/rename_event.h"
 
+struct ChangeItemInfo {
+	DWORD action;
+	std::wstring relative_path;
+};
+
 class WindowEventPusherTest : public ::testing::Test {
 public:
 	std::shared_ptr<monitor_client::EventQueue> event_queue;
@@ -86,7 +91,7 @@ public:
 		_wsystem(L"rmdir /s /q C:\\Users\\ABO\\Desktop\\1");
 	}
 
-	int MakeNotify(uint8_t* buffer, const monitor_client::common_utility::ChangeItemInfo& change_item_info, bool is_last) {
+	int MakeNotify(uint8_t* buffer, const ChangeItemInfo& change_item_info, bool is_last) {
 		FILE_NOTIFY_INFORMATION* fni = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(&buffer[0]);
 
 		fni->Action = change_item_info.action;
@@ -107,7 +112,7 @@ TEST_F(WindowEventPusherTest, PushEvent) {
 	memset(buffer.get(), 0, 1024 * 1024);
 	uint8_t* pos = buffer.get();
 
-	monitor_client::common_utility::ChangeItemInfo info;
+	ChangeItemInfo info;
 	info.action = FILE_ACTION_ADDED;
 	info.relative_path = L"1_1/1_1_1/1_1_1_1.txt";
 	int next = MakeNotify(pos, info, false);

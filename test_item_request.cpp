@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <Windows.h>
+
 #include <optional>
 #include <vector>
 
