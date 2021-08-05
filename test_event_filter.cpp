@@ -11,6 +11,7 @@
 #include "../monitor_client/event_queue.h"
 #include "../monitor_client/upload_event.h"
 #include "../monitor_client/rename_event.h"
+#include "../monitor_client/remove_event.h"
 
 class EventFilterTest : public ::testing::Test {
 public:
@@ -87,11 +88,13 @@ TEST_F(EventFilterTest, RenameFilter) {
 	change_name_info.new_name = L"새 폴더 (2)/test.txt.conflict";
 
 	filter->RenameFilter(event_queue, change_name_info);
+	ASSERT_EQ(event_queue->Size(), 0);
 
 	change_name_info.old_name = L"새 폴더 (2)/test.txt.conflict";
 	change_name_info.new_name = L"새 폴더 (2)/new.txt.conflict";
 
 	filter->RenameFilter(event_queue, change_name_info);
+	ASSERT_EQ(event_queue->Size(), 0);
 
 	change_name_info.old_name = L"새 폴더 (2)/test.txt";
 	change_name_info.new_name = L"새 폴더 (2)/test2.txt";
@@ -111,5 +114,29 @@ TEST_F(EventFilterTest, RenameFilter) {
 	ASSERT_NE(dynamic_cast<monitor_client::UploadEvent*>(event), nullptr);
 	event_queue->Pop();
 
+	ASSERT_EQ(event_queue->Size(), 0);
+
+	change_name_info.old_name = L"새 폴더 (2)/test.txt";
+	change_name_info.new_name = L"새 폴더 (2)/test.txt.ignore";
+
+	filter->RenameFilter(event_queue, change_name_info);
+
+	event = const_cast<monitor_client::BaseEvent*>(event_queue->Front().get());
+	ASSERT_NE(dynamic_cast<monitor_client::RemoveEvent*>(event), nullptr);
+	event_queue->Pop();
+
+	change_name_info.old_name = L"새 폴더 (2)/test.txt.ignore";
+	change_name_info.new_name = L"새 폴더 (2)/test.txt";
+
+	filter->RenameFilter(event_queue, change_name_info);
+
+	event = const_cast<monitor_client::BaseEvent*>(event_queue->Front().get());
+	ASSERT_NE(dynamic_cast<monitor_client::UploadEvent*>(event), nullptr);
+	event_queue->Pop();
+
+	change_name_info.old_name = L"새 폴더 (2)/test.txt.ignore";
+	change_name_info.new_name = L"새 폴더 (2)/test2.txt.ignore";
+
+	filter->RenameFilter(event_queue, change_name_info);
 	ASSERT_EQ(event_queue->Size(), 0);
 }
