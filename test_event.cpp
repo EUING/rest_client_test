@@ -117,9 +117,9 @@ TEST_F(EventTest, Upload) {
 	ASSERT_TRUE(SetCurrentDirectory(target_folder.c_str()));
 
 	monitor_client::common_utility::ItemInfo info;
-	info.name = L"1_1/1_1_1/1_2_1_1.txt";
-	info.size = 123;
-	info.hash = L"hash";
+	info.name = L"1_1/1_1_1/1_1_1_1.txt";
+	info.size = 0;
+	info.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
 	monitor_client::UploadEvent event(info);
 	ASSERT_TRUE(event.Execute(*item_request));

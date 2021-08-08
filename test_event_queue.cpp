@@ -44,9 +44,23 @@ public:
 		wchar_t command_line[] = L"C:\\Users\\ABO\\Desktop\\repos\\monitor_dummy_server\\x64\\Release\\monitor_dummy_server.exe";
 		CreateProcess(NULL, command_line, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &startup_info, &process_info);
 		Sleep(500);
+
+		std::wstring file_path = L"C:\\Users\\ABO\\Desktop\\1";
+		_wmkdir(file_path.c_str());
+
+		file_path = L"C:\\Users\\ABO\\Desktop\\1\\1_1";
+		_wmkdir(file_path.c_str());
+
+		file_path = L"C:\\Users\\ABO\\Desktop\\1\\1_1\\1_1_1";
+		_wmkdir(file_path.c_str());
+
+		std::wstring file_name = L"C:\\Users\\ABO\\Desktop\\1\\1_1\\1_1_1\\1_1_1_1.txt";
+		std::ofstream temp{ file_name };
+		temp.close();
 	}
 
 	void TearDown() override {
+		_wsystem(L"rmdir /s /q C:\\Users\\ABO\\Desktop\\1");
 		TerminateProcess(process_info.hProcess, 0);
 		WaitForSingleObject(process_info.hProcess, 500);
 		CloseHandle(process_info.hProcess);
@@ -109,10 +123,13 @@ TEST_F(EventQueueTest, Break) {
 }
 
 TEST_F(EventQueueTest, Execute) {
+	std::wstring target_folder = L"C:\\Users\\ABO\\Desktop\\1";
+	ASSERT_TRUE(SetCurrentDirectory(target_folder.c_str()));
+
 	monitor_client::common_utility::ItemInfo info;
-	info.name = L"1_1/1_1_1/1_2_1_1.txt";
-	info.size = 123;
-	info.hash = L"hash";
+	info.name = L"1_1/1_1_1/1_1_1_1.txt";
+	info.size = 0;
+	info.hash = L"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
 	monitor_client::EventQueue queue;
 	queue.Push(std::make_unique<monitor_client::UploadEvent>(info));
